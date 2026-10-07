@@ -1,0 +1,217 @@
+/* Campus Eats — wireframe stylesheet.
+   Wireframe fidelity: one font, black on white, gray placeholder boxes,
+   no color, no imagery. One tile style, one page margin, one border weight
+   per role. Desktop first; collapses to a single column on phones. */
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #000;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+a         { color: #000; text-decoration: underline; }
+a:visited { color: #000; }
+a:hover   { background: #eee; }
+a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+button, input { font: inherit; color: #000; }
+
+/* ---------------------------------------------------------------- frame */
+.frame {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid #000;
+  padding: 20px 0 12px;
+}
+.topbar__home {
+  font-size: 22px;
+  font-weight: bold;
+  text-decoration: none;
+}
+.topbar__util { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 14px; }
+.topbar__util[hidden] { display: none; }
+
+.is-inert { pointer-events: none; cursor: default; }
+
+.page { padding: 24px 0 0; outline: none; }
+
+.footfine {
+  margin-top: 56px;
+  border-top: 1px solid #ccc;
+  padding-top: 8px;
+  font-size: 12px;
+  color: #555;
+}
+.footfine p { margin: 0; }
+
+/* ------------------------------------------------------------ furniture */
+h1 { font-size: 26px; margin: 0 0 6px; }
+h2 { font-size: 18px; margin: 32px 0 10px; }
+
+.lede    { margin: 0 0 24px; max-width: 60ch; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #555; margin: 0 0 6px; }
+.hint    { font-size: 13px; color: #555; }
+.notice  { border-left: 4px solid #000; padding: 6px 12px; margin: 0 0 16px; }
+
+.crumbs { font-size: 14px; margin: 0 0 16px; color: #555; }
+.crumbs__sep { margin: 0 8px; }
+.crumbs span[aria-current] { color: #000; }
+
+/* ---------------------------------------------------------------- tiles */
+.tiles {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 72px;
+  border: 1px solid #000;
+  padding: 14px 40px 14px 16px;
+  text-decoration: none;
+}
+.tile:hover { background: #eee; }
+.tile__name { font-weight: bold; text-decoration: underline; }
+.tile__sub  { font-size: 13px; color: #555; margin-top: 4px; }
+.tile__go   { position: absolute; right: 14px; top: 14px; font-size: 13px; }
+.tile--leaf .tile__go { text-decoration: underline; }
+
+/* Home: the two ways in, side by side. */
+.tiles--doors { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.tile--door { border-width: 2px; padding: 20px 40px 20px 20px; min-height: 220px; }
+.tile--door .tile__name { font-size: 20px; }
+.tile__list { margin-top: 14px; padding-top: 12px; border-top: 1px solid #ccc; font-size: 14px; }
+
+/* ---------------------------------------------------------- leaf (end state) */
+.endstate { border: 2px solid #000; padding: 16px 20px; margin: 0 0 20px; }
+.endstate__label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #555; margin: 0 0 4px; }
+.endstate__name  { margin: 0; font-size: 26px; font-weight: bold; }
+
+.attrs { margin: 0 0 24px; border-collapse: collapse; width: 100%; max-width: 560px; font-size: 14px; }
+.attrs th, .attrs td { text-align: left; vertical-align: top; border-bottom: 1px solid #ddd; padding: 6px 12px 6px 0; }
+.attrs th { width: 30%; font-weight: normal; color: #555; }
+
+.phgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0 0 8px; }
+.ph { border: 1px dashed #999; padding: 12px; background: #f6f6f6; }
+.ph__label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #555; margin: 0 0 10px; }
+.bar { height: 10px; background: #ddd; margin: 0 0 8px; }
+.bar--80 { width: 80%; }
+.bar--60 { width: 60%; }
+.bar--40 { width: 40%; }
+
+.stack { list-style: none; margin: 0 0 24px; padding: 0; }
+.stack li { border-bottom: 1px solid #ccc; padding: 10px 0; }
+.stack li:first-child { border-top: 1px solid #ccc; }
+
+.chips { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-block;
+  border: 1px solid #000;
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 14px;
+  text-decoration: none;
+}
+.chip:hover { background: #eee; }
+
+
+/* ------------------------------------------------------------- site map */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.col { border: 1px solid #000; padding: 16px; }
+.tree, .tree ul { list-style: none; margin: 0; padding: 0; }
+.tree ul { padding-left: 18px; border-left: 1px solid #ccc; margin: 4px 0 8px 4px; }
+.tree li { margin: 3px 0; font-size: 14px; }
+.tree > li > a { font-weight: bold; font-size: 16px; }
+
+/* ----------------------------------------------------------- instruments */
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 20px; }
+.tools button, .btn, .filebtn {
+  display: inline-block;
+  font-size: 14px;
+  background: #fff;
+  border: 1px solid #000;
+  padding: 7px 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.tools button:hover, .btn:hover, .filebtn:hover { background: #eee; }
+.filebtn input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.filebtn:focus-within { outline: 2px solid #000; outline-offset: 2px; }
+.btn--big { font-size: 16px; padding: 10px 22px; border-width: 2px; }
+
+.linkbtn { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; font-size: 13px; color: #555; }
+
+.logtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.logtable th, .logtable td { border-bottom: 1px solid #ddd; padding: 6px 10px 6px 0; text-align: left; vertical-align: top; }
+.logtable th { color: #555; font-weight: normal; border-bottom: 1px solid #999; }
+.logtable td.num { white-space: nowrap; }
+.scrollx { overflow-x: auto; }
+
+.empty { color: #555; font-size: 14px; border: 1px dashed #999; padding: 16px; }
+
+.field__label { display: block; font-weight: bold; margin: 0 0 6px; }
+.field { width: 100%; max-width: 280px; border: 1px solid #000; padding: 8px 10px; background: #fff; }
+
+/* ------------------------------------------------------------- test mode */
+.testbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border: 2px solid #000;
+  border-top: none;
+  background: #fff;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+.testbar[hidden] { display: none; }
+.testbar__row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.testbar__count { font-weight: bold; white-space: nowrap; }
+.testbar__task { flex: 1 1 320px; }
+.testbar__clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.card { border: 2px solid #000; padding: 24px; margin: 0 0 20px; max-width: 640px; }
+.card__count { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #555; margin: 0 0 10px; }
+.card__scenario { font-size: 20px; margin: 0 0 16px; }
+
+.runlist { list-style: none; margin: 0; padding: 0; }
+.runlist > li { border: 1px solid #999; padding: 12px; margin: 0 0 12px; }
+.runlist summary { cursor: pointer; }
+.runlist table { margin-top: 10px; }
+
+/* ---------------------------------------------------------------- phones */
+@media (max-width: 600px) {
+  .frame { padding: 0 16px 48px; }
+  .topbar__home { font-size: 20px; }
+  h1 { font-size: 22px; }
+  .tiles, .tiles--doors { grid-template-columns: 1fr; }
+  .tile--door { min-height: 0; }
+  .card { padding: 16px; }
+  .card__scenario { font-size: 18px; }
+  .testbar { margin: 0 -16px; border-left: 0; border-right: 0; }
+}

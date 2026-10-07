@@ -31,7 +31,13 @@ window.CE_DATA = {
     { key: "chicken", name: "Fried Chicken" },
     { key: "asian", name: "Asian" },
     { key: "mexican", name: "Mexican" },
-    { key: "healthy", name: "Healthy" }
+    { key: "healthy", name: "Healthy" },
+    // Added from the raw sorts: Cafe (sorts 4 and 8), Hawaiian and BBQ
+    // (sort 4 each). Roni's, The Blue Line and J Dawgs got no cuisine label
+    // from any sorter, so they stay Location-only rather than going in a Misc.
+    { key: "hawaiian", name: "Hawaiian" },
+    { key: "bbq", name: "BBQ" },
+    { key: "cafe", name: "Cafe" }
   ],
 
   // Level 2 of the cuisine view. BYU / not-BYU appeared in 5 of 14 sorts;
@@ -65,12 +71,12 @@ window.CE_DATA = {
   // campus: "on" | "near"
   // area:   a campusAreas key when on campus, a locations key when near
   restaurants: [
-    { id: "aloha-plate", name: "Aloha Plate", cuisine: [], campus: "on", area: "cougareat", verified: false },
+    { id: "aloha-plate", name: "Aloha Plate", cuisine: ["hawaiian"], campus: "on", area: "cougareat", verified: false },
     { id: "byu-creamery", name: "BYU Creamery", cuisine: ["burgers"], campus: "on", area: "east-campus", verified: false },
     { id: "blue-sushi", name: "Blue Sushi", cuisine: ["asian"], campus: "on", area: "cougareat", verified: false },
     { id: "burgers-supreme", name: "Burgers Supreme", cuisine: ["burgers"], campus: "near", area: "west", verified: false },
     { id: "chick-fil-a", name: "Chick-fil-A", cuisine: ["chicken"], campus: "on", area: "cougareat", verified: false },
-    { id: "choices", name: "Choices", cuisine: ["healthy"], campus: "on", area: "cougareat", verified: false },
+    { id: "choices", name: "Choices", cuisine: ["healthy", "cafe"], campus: "on", area: "cougareat", verified: false },
     { id: "costa-vida", name: "Costa Vida", cuisine: ["mexican"], campus: "on", area: "cougareat", verified: false },
     { id: "cougar-crust", name: "Cougar Crust", cuisine: ["pizza"], campus: "on", area: "cougareat", verified: false },
     { id: "crazy-ds", name: "Crazy D's Hot Chicken", cuisine: ["chicken"], campus: "near", area: "west", verified: false },
@@ -81,24 +87,24 @@ window.CE_DATA = {
     { id: "harveys", name: "Harvey's", cuisine: ["burgers"], campus: "on", area: "south-campus", verified: false },
     { id: "j-dawgs", name: "J Dawgs", cuisine: [], campus: "near", area: "south", verified: false },
     { id: "jamba", name: "Jamba", cuisine: ["healthy"], campus: "on", area: "north-campus", verified: false },
-    { id: "konala", name: "Konala", cuisine: ["healthy"], campus: "near", area: "west", verified: false },
-    { id: "legends-grille", name: "Legends Grille", cuisine: [], campus: "on", area: "west-campus", verified: false },
-    { id: "library-cafe", name: "Library Cafe", cuisine: [], campus: "on", area: "north-campus", verified: false },
-    { id: "moa-cafe", name: "MOA Cafe", cuisine: [], campus: "on", area: "north-campus", verified: false },
-    { id: "mo-bettahs", name: "Mo' Bettahs", cuisine: [], campus: "near", area: "north", verified: false },
+    { id: "konala", name: "Konala", cuisine: ["healthy", "hawaiian"], campus: "near", area: "west", verified: false },
+    { id: "legends-grille", name: "Legends Grille", cuisine: ["bbq"], campus: "on", area: "west-campus", verified: false },
+    { id: "library-cafe", name: "Library Cafe", cuisine: ["cafe"], campus: "on", area: "north-campus", verified: false },
+    { id: "moa-cafe", name: "MOA Cafe", cuisine: ["cafe"], campus: "on", area: "north-campus", verified: false },
+    { id: "mo-bettahs", name: "Mo' Bettahs", cuisine: ["hawaiian"], campus: "near", area: "north", verified: false },
     { id: "papa-johns", name: "Papa John's", cuisine: ["pizza"], campus: "on", area: "cougareat", verified: false },
-    { id: "pendulum-court", name: "Pendulum Court Cafe", cuisine: [], campus: "on", area: "south-campus", verified: false },
+    { id: "pendulum-court", name: "Pendulum Court Cafe", cuisine: ["cafe"], campus: "on", area: "south-campus", verified: false },
     { id: "raising-canes", name: "Raising Cane's", cuisine: ["chicken"], campus: "near", area: "west", verified: false },
     { id: "ronis", name: "Roni's Mac Bar", cuisine: [], campus: "near", area: "west", verified: false },
     { id: "sage-pizza", name: "Sage Pizza", cuisine: ["pizza"], campus: "near", area: "east", verified: false },
-    { id: "shirleys", name: "Shirley's Bakery & Cafe", cuisine: [], campus: "near", area: "north", verified: false },
-    { id: "steak-express", name: "Steak Express", cuisine: [], campus: "near", area: "east", verified: false },
+    { id: "shirleys", name: "Shirley's Bakery & Cafe", cuisine: ["cafe"], campus: "near", area: "north", verified: false },
+    { id: "steak-express", name: "Steak Express", cuisine: ["bbq"], campus: "near", area: "east", verified: false },
     { id: "subway", name: "Subway", cuisine: ["healthy"], campus: "on", area: "east-campus", verified: false },
     { id: "teri-gao", name: "Teri Gao Asian Cafe", cuisine: ["asian"], campus: "near", area: "west", verified: false },
     { id: "blue-line", name: "The Blue Line", cuisine: [], campus: "on", area: "north-campus", verified: false },
     { id: "taco-spot", name: "The Taco Spot", cuisine: ["mexican"], campus: "near", area: "west", verified: false },
     { id: "wendys", name: "Wendy's", cuisine: ["burgers"], campus: "on", area: "cougareat", verified: false },
-    { id: "y-mountain-bbq", name: "Y Mountain BBQ", cuisine: [], campus: "on", area: "cougareat", verified: false }
+    { id: "y-mountain-bbq", name: "Y Mountain BBQ", cuisine: ["bbq"], campus: "on", area: "cougareat", verified: false }
   ],
 
   // ------------------------------------------------------- test scenarios

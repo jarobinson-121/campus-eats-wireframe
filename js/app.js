@@ -28,16 +28,7 @@
           CE.esc(n.name) + ' (breadcrumb)">' + CE.esc(n.name) + "</a>");
       }
     });
-    return '<nav class="crumbs" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
-  }
-
-  function tile(href, name, sub, isLeaf) {
-    return '<li><a class="tile' + (isLeaf ? " tile--leaf" : "") + '" href="' + href +
-      '" data-kind="tile" data-label="' + CE.esc(name) + '">' +
-      '<span class="tile__name">' + CE.esc(name) + "</span>" +
-      (sub ? '<span class="tile__sub">' + CE.esc(sub) + "</span>" : "") +
-      '<span class="tile__go" aria-hidden="true">' + (isLeaf ? "Select" : "›") + "</span>" +
-      "</a></li>";
+    return '<nav class="crumbs miller-crumbs" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
   }
 
   function subFor(node) {
@@ -59,32 +50,46 @@
       '<ul class="tiles tiles--doors">' + tiles + "</ul>";
   }
 
-  function viewBranch(r) {
-    var node = r.node;
-    var tiles = node.children.map(function (c) {
-      return tile(CE.hrefFor(r.trail, r.trail.length - 1) + "/" + c.key, c.name, subFor(c), !!c.block);
-    }).join("");
-    var leafLevel = node.children[0] && node.children[0].block;
-    var prompt = leafLevel ? "Choose a restaurant." : (r.trail.length === 1 ? node.blurb : "Narrow it down.");
-    // "On Campus" alone is ambiguous two levels down, so name the parent too.
-    var parent = r.trail.length > 2 ? r.trail[r.trail.length - 2] : null;
-    app.innerHTML =
-      crumbs(r.trail) +
-      (parent ? '<p class="eyebrow">' + CE.esc(parent.name) + "</p>" : "") +
-      "<h1>" + CE.esc(node.name) + "</h1>" +
-      '<p class="lede">' + CE.esc(prompt) + "</p>" +
-      '<ul class="tiles">' + tiles + "</ul>";
+  // Browse pages are Finder-style columns: one column per level along the
+  // route, the chosen item in each column marked, and the restaurant's
+  // details in a final panel. The route still names exactly one node, so
+  // the click log, test mode and the back button work as before.
+  function viewTabs(current) {
+    return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
+      return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
+        (v === current ? ' aria-current="true"' : "") +
+        ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + CE.esc(v.name) + "</a>";
+    }).join("") + "</nav>";
   }
 
-  function viewLeaf(r) {
+  function column(trail, selectedKey, isCurrent) {
+    var node = trail[trail.length - 1];
+    var here = CE.hrefFor(trail, trail.length - 1);
+    // Name the parent too: "On Campus" alone is ambiguous two levels down.
+    var heading = trail.length === 1 ? node.short :
+      (trail.length > 2 ? trail[trail.length - 2].name + " · " : "") + node.name;
+    var items = node.children.map(function (c) {
+      var selected = c.key === selectedKey;
+      return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
+        (selected ? ' aria-current="true"' : "") +
+        ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
+        '<span class="colitem__name">' + CE.esc(c.name) + "</span>" +
+        (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
+        "</a></li>";
+    }).join("");
+    return '<section class="miller__col' + (isCurrent ? " is-current" : "") + '">' +
+      '<h2 class="miller__head">' + CE.esc(heading) + "</h2>" +
+      '<ul class="collist">' + items + "</ul></section>";
+  }
+
+  function detail(r) {
     var rest = CE.restaurant(r.node.block);
     var here = CE.hrefFor(r.trail, r.trail.length - 1);
     var elsewhere = CE.trailsTo(rest.id).filter(function (t) {
       return CE.hrefFor(t, t.length - 1) !== here;
     });
     var cuisines = CE.cuisineNames(rest);
-    app.innerHTML =
-      crumbs(r.trail) +
+    return '<section class="miller__detail is-current">' +
       '<div class="endstate" role="status">' +
         '<p class="endstate__label">You selected</p>' +
         '<p class="endstate__name">' + CE.esc(rest.name) + "</p>" +
@@ -94,16 +99,40 @@
         "<tr><th>Location</th><td>" + CE.esc(CE.locationName(rest)) + "</td></tr>" +
         "<tr><th>Block ID</th><td>" + CE.esc(rest.id) + "</td></tr>" +
       "</tbody></table>" +
-      '<div class="phgrid">' +
-        placeholder("Hours") + placeholder("Menu highlights") + placeholder("Map / directions") +
-      "</div>" +
+      placeholder("Hours") + placeholder("Menu highlights") + placeholder("Map / directions") +
       (elsewhere.length ?
-        '<h2>Also listed under</h2><ul class="chips">' + elsewhere.map(function (t) {
+        '<h3 class="detail__h">Also listed under</h3><ul class="chips">' + elsewhere.map(function (t) {
           // Chip names the categories only; the view name is implied by them.
           var tag = t.slice(1, -1).map(function (n) { return n.name; }).join(" · ");
           return '<li><a class="chip" href="' + CE.hrefFor(t, t.length - 2) + '" data-kind="cross" data-label="Also under: ' +
             CE.esc(tag) + '">' + CE.esc(tag) + "</a></li>";
-        }).join("") + "</ul>" : "");
+        }).join("") + "</ul>" : "") +
+      "</section>";
+  }
+
+  function viewColumns(r) {
+    var trail = r.trail;
+    var isLeaf = !!r.node.block;
+    var cols = [];
+    trail.forEach(function (node, i) {
+      if (!node.children) return;
+      var deepest = i === trail.length - 1;
+      cols.push(column(trail.slice(0, i + 1), deepest ? null : trail[i + 1].key, deepest));
+    });
+    if (isLeaf) {
+      cols.push(detail(r));
+    } else {
+      var next = r.node.children[0] && r.node.children[0].block ? "a restaurant" : "one to see more";
+      cols.push('<div class="miller__ghost" aria-hidden="true">Choose ' + next + " ←</div>");
+    }
+    app.innerHTML =
+      '<h1 class="vh">' + CE.esc(isLeaf ? r.node.name : r.view.name) + "</h1>" +
+      viewTabs(r.view) +
+      '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" +
+      crumbs(trail) +
+      '<div class="miller" id="miller">' + cols.join("") + "</div>";
+    var miller = document.getElementById("miller");
+    miller.scrollLeft = miller.scrollWidth;
   }
 
   function placeholder(label) {
@@ -263,18 +292,25 @@
     CE.test.renderBar(testbar);
 
     if (segments.length === 0) viewHome();
-    else if (resolved && resolved.node.block) viewLeaf(resolved);
-    else if (resolved) viewBranch(resolved);
+    else if (resolved) viewColumns(resolved);
     else if (segments[0] === "test" && segments.length === 1) CE.test.renderPage(app);
     else if (INSTRUMENTS[segments[0]] && segments.length === 1 && !running) INSTRUMENTS[segments[0]]();
     else notFound();
 
-    var title = app.querySelector("h1, .endstate__name");
+    var title = app.querySelector("h1");
     var name = title ? title.textContent : D.title;
     document.title = (name === D.title ? "" : name + " — ") + D.title + " (wireframe)";
-    window.scrollTo(0, 0);
-    app.focus({ preventScroll: true });
+
+    // Moving between columns of the same view keeps the screen still;
+    // anything else is a new screen and starts at the top.
+    var viewKey = resolved ? resolved.view.key : null;
+    if (!viewKey || viewKey !== lastViewKey) {
+      window.scrollTo(0, 0);
+      app.focus({ preventScroll: true });
+    }
+    lastViewKey = viewKey;
   };
+  var lastViewKey = null;
 
   window.addEventListener("hashchange", CE.render);
   setInterval(CE.test.tick, 1000);

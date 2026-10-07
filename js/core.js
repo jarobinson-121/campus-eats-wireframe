@@ -127,6 +127,7 @@
   var foodView = {
     key: "food",
     name: "Browse by Food Type",
+    short: "Food type",
     blurb: "Pick what you're hungry for, then on or near campus.",
     children: D.cuisines.map(function (c) {
       return {
@@ -148,6 +149,7 @@
   var placeView = {
     key: "place",
     name: "Browse by Location",
+    short: "Location",
     blurb: "Pick where you are, then a restaurant there.",
     children: D.locations.map(function (l) {
       if (l.campus === "on") {

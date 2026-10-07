@@ -99,8 +99,6 @@ h2 { font-size: 18px; margin: 32px 0 10px; }
 .tile:hover { background: #eee; }
 .tile__name { font-weight: bold; text-decoration: underline; }
 .tile__sub  { font-size: 13px; color: #555; margin-top: 4px; }
-.tile__go   { position: absolute; right: 14px; top: 14px; font-size: 13px; }
-.tile--leaf .tile__go { text-decoration: underline; }
 
 /* Home: the two ways in, side by side. */
 .tiles--doors { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
@@ -117,8 +115,7 @@ h2 { font-size: 18px; margin: 32px 0 10px; }
 .attrs th, .attrs td { text-align: left; vertical-align: top; border-bottom: 1px solid #ddd; padding: 6px 12px 6px 0; }
 .attrs th { width: 30%; font-weight: normal; color: #555; }
 
-.phgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 0 0 8px; }
-.ph { border: 1px dashed #999; padding: 12px; background: #f6f6f6; }
+.ph { border: 1px dashed #999; padding: 12px; margin: 0 0 12px; background: #f6f6f6; }
 .ph__label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #555; margin: 0 0 10px; }
 .bar { height: 10px; background: #ddd; margin: 0 0 8px; }
 .bar--80 { width: 80%; }
@@ -139,6 +136,71 @@ h2 { font-size: 18px; margin: 32px 0 10px; }
   text-decoration: none;
 }
 .chip:hover { background: #eee; }
+
+/* ------------------------------------------------------- browse columns */
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 0; margin: 0 0 12px; border-bottom: 1px solid #000; }
+.tab {
+  padding: 8px 16px;
+  margin-bottom: -1px;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+.tab.is-current { border-color: #000; border-bottom-color: #fff; font-weight: bold; }
+.tab:not(.is-current) { text-decoration: underline; }
+
+/* Breadcrumbs only on phones, where one column shows at a time. */
+.miller-crumbs { display: none; }
+
+.miller {
+  display: flex;
+  border: 1px solid #000;
+  min-height: 420px;
+  overflow-x: auto;
+}
+.miller__col {
+  flex: 0 0 190px;
+  border-right: 1px solid #000;
+}
+.miller__head {
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: normal;
+  color: #555;
+  margin: 0;
+  padding: 10px 12px;
+  border-bottom: 1px solid #ccc;
+}
+.collist { list-style: none; margin: 0; padding: 0; }
+.colitem {
+  position: relative;
+  display: block;
+  padding: 9px 28px 9px 12px;
+  border-bottom: 1px solid #eee;
+  text-decoration: none;
+}
+.colitem:hover { background: #eee; }
+.colitem__name { display: block; }
+.colitem__sub  { display: block; font-size: 12px; color: #555; }
+.colitem__go   { position: absolute; right: 12px; top: 9px; }
+.colitem.is-selected { background: #000; color: #fff; }
+.colitem.is-selected .colitem__sub { color: #ccc; }
+
+.miller__ghost {
+  flex: 1 1 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 14px;
+  margin: 12px;
+  border: 1px dashed #999;
+}
+.miller__detail { flex: 1 1 300px; min-width: 280px; padding: 16px; }
+.miller__detail .endstate__name { font-size: 22px; }
+.detail__h { font-size: 15px; margin: 20px 0 8px; }
 
 
 /* ------------------------------------------------------------- site map */
@@ -206,6 +268,14 @@ h2 { font-size: 18px; margin: 32px 0 10px; }
 
 /* ---------------------------------------------------------------- phones */
 @media (max-width: 600px) {
+  /* Phones: only the current column; breadcrumbs lead back up. */
+  .miller-crumbs { display: block; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; }
+  .tab { text-align: center; padding: 8px; }
+  .miller { min-height: 0; }
+  .miller > :not(.is-current) { display: none; }
+  .miller__col { flex: 1 1 auto; border-right: 0; }
+  .miller__detail { min-width: 0; }
   .frame { padding: 0 16px 48px; }
   .topbar__home { font-size: 20px; }
   h1 { font-size: 22px; }

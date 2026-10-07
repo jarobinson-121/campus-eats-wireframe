@@ -14,6 +14,13 @@ window.CE_DATA = {
   title: "Campus Eats",
   tagline: "Find somewhere to eat on or near BYU campus.",
 
+  // Google Sheet that collects test-mode results (Apps Script web app).
+  // token must match TOKEN in the Apps Script. Set url to "" to turn off.
+  sheet: {
+    url: "https://script.google.com/macros/s/AKfycbxL4YOxs0_Rhwp1l2BNkxN_OArwTOu2wNHKKkHKlgwZvfvCvXIcLt1CwL2XqeSnRJMAHg/exec",
+    token: "campus-eats-356"
+  },
+
   // ---------------------------------------------------------------- view 1
   // Cuisine — strongest trend (~10 of 14 sorts). Working labels from the
   // report. Restaurants whose cuisine fits none of these have cuisine: []

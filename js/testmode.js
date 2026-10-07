@@ -88,7 +88,7 @@
   function finishTask(blockId, trail) {
     var t = CE.task(currentTaskId());
     var r = blockId ? CE.restaurant(blockId) : null;
-    active.results.push({
+    var result = {
       position: active.index + 1,
       taskId: t.id,
       scenario: t.scenario,
@@ -103,7 +103,9 @@
       firstClick: active.task.firstClick,
       path: active.task.path.slice(),
       startedAt: new Date(active.task.startedAt).toISOString()
-    });
+    };
+    active.results.push(result);
+    CE.sync.send("Attempts", [sheetRow(active, result)]);
     active.lastAnswer = r ? "You chose " + r.name + "." : "You gave up on that one. That's useful too.";
     active.index += 1;
     active.phase = "card";
@@ -131,6 +133,7 @@
         results: active.results
       });
       saveRuns(runs);
+      CE.sync.send("Clicks", CE.log.entries().filter(function (e) { return e.run === active.runId; }));
       justFinished = { runId: active.runId, participant: active.participant, complete: complete };
     }
     active = null;
@@ -305,6 +308,28 @@
     return ids.map(function (id) { var r = CE.restaurant(id); return r ? r.name : id; }).join(" | ");
   }
 
+  // One Attempts-tab row. Keys become the Sheet's header row, so keep them stable.
+  function sheetRow(run, r) {
+    return {
+      sentAt: new Date().toISOString(),
+      runId: run.runId,
+      participant: run.participant,
+      runStartedAt: run.startedAt,
+      position: r.position,
+      taskId: r.taskId,
+      scenario: r.scenario,
+      expected: names(r.expect),
+      endpoint: r.endpoint,
+      endpointName: r.endpointName,
+      correct: r.correct,
+      gaveUp: r.gaveUp,
+      seconds: r.seconds,
+      clicks: r.clicks,
+      firstClick: r.firstClick,
+      path: r.path.join(" > ")
+    };
+  }
+
   var CSV_HEAD = ["runId", "participant", "runStartedAt", "runComplete", "position", "taskId", "scenario",
     "expected", "endpoint", "endpointName", "correct", "gaveUp", "seconds", "clicks", "firstClick", "path"];
 
@@ -385,6 +410,7 @@
         '<button type="button" id="rx-copy" data-label="Copy results JSON">Copy JSON</button>' +
         '<label class="filebtn">Import JSON…<input type="file" id="rx-import" accept="application/json,.json"></label>' +
         '<button type="button" id="rx-clear" data-label="Clear all results">Clear all</button>' +
+        (CE.sync.enabled ? '<button type="button" id="rx-sync" data-label="Sync to Google Sheet">Sync now</button>' : "") +
         '<span class="hint" id="rx-status" role="status"></span>' +
       "</div>" +
       (runs.length ?
@@ -398,6 +424,21 @@
         : '<p class="empty">No sessions yet. Start one from <a href="#/test" data-label="Test mode (from results)">Test mode</a>.</p>');
 
     function status(msg) { document.getElementById("rx-status").textContent = msg; }
+    function syncStatus() {
+      if (!CE.sync.enabled || !document.getElementById("rx-status")) return;
+      var n = CE.sync.pending();
+      var err = CE.sync.error();
+      status(!n ? "Google Sheet up to date." :
+        CE.plural(n, "row", "rows") + " waiting to send to the Google Sheet." + (err ? " " + err : ""));
+    }
+    syncStatus();
+    CE.sync.onChange(syncStatus);
+    if (CE.sync.enabled) {
+      document.getElementById("rx-sync").addEventListener("click", function () {
+        status("Sending…");
+        CE.sync.flush();
+      });
+    }
 
     document.getElementById("rx-json").addEventListener("click", function () {
       CE.download("campus-eats-results-" + CE.stamp() + ".json", JSON.stringify(readRuns(), null, 2), "application/json");

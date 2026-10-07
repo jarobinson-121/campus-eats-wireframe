@@ -26,6 +26,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 | `js/core.js` | Builds both browse trees from the attributes in `data.js`; shared helpers. |
 | `js/app.js` | Router and page rendering: home, browse pages, restaurant page, site map, coverage check, click log. |
 | `js/logger.js` | Records every click to `localStorage`; JSON/CSV export. |
+| `js/sync.js` | Sends test results and their clicks to the team Google Sheet (Apps Script web app set in `data.js` → `sheet`), with an offline retry queue. |
 | `js/testmode.js` | Test mode: shuffled tasks, timer, give-up, resume after reload, results with export/import. |
 | `css/wireframe.css` | Wireframe styles: one font, black and white, one tile style. |
 
@@ -49,5 +50,6 @@ After any edit, open `#/check` to confirm nothing became unreachable.
 
 ## Notes
 
-- Test results and the click log live in the browser that ran them. Export after each session.
+- Test-mode results go to the team Google Sheet as each task finishes (tab **Attempts**), and each session's clicks go to the **Clicks** tab when the session ends. A copy also stays in the browser, so export/import still works. Browse-mode clicks stay local; export them from the Click log page.
+- To turn off Sheet sending, set `sheet.url` to `""` in `data.js`.
 - Restaurant locations are drafted from what most card sorters said and are marked `verified: false` until the team confirms them.

@@ -104,8 +104,9 @@
       path: active.task.path.slice(),
       startedAt: new Date(active.task.startedAt).toISOString()
     };
-    active.results.push(result);
     CE.sync.send("Attempts", [sheetRow(active, result)]);
+    result.queued = true;
+    active.results.push(result);
     active.lastAnswer = r ? "You chose " + r.name + "." : "You gave up on that one. That's useful too.";
     active.index += 1;
     active.phase = "card";
@@ -130,15 +131,51 @@
         complete: complete,
         restarts: active.restarts || 0,
         order: active.order,
-        results: active.results
+        results: active.results,
+        clicksQueued: true
       });
       saveRuns(runs);
-      CE.sync.send("Clicks", CE.log.entries().filter(function (e) { return e.run === active.runId; }));
+      CE.sync.send("Clicks", runClicks(active.runId));
       justFinished = { runId: active.runId, participant: active.participant, complete: complete };
     }
     active = null;
     interrupted = false;
     CE.remove(ACTIVE_KEY);
+  }
+
+  function runClicks(runId) {
+    return CE.log.entries().filter(function (e) { return e.run === runId; });
+  }
+
+  // Results saved by an older copy of the site (before Sheet sending, or
+  // from a tab left open across a deploy) were never queued. Queue them once,
+  // skipping anything already waiting in the queue, and mark them so they are
+  // never sent twice.
+  function backfill() {
+    if (!CE.sync.enabled) return;
+    var waiting = {};
+    CE.sync.queued().forEach(function (b) {
+      b.rows.forEach(function (row) {
+        waiting[b.kind === "Clicks" ? "Clicks:" + row.run : "Attempts:" + row.runId + ":" + row.position] = true;
+      });
+    });
+    function catchUp(run, isOpen) {
+      var rows = run.results.filter(function (r) { return !r.queued; });
+      var unsent = rows.filter(function (r) { return !waiting["Attempts:" + run.runId + ":" + r.position]; });
+      if (unsent.length) CE.sync.send("Attempts", unsent.map(function (r) { return sheetRow(run, r); }));
+      rows.forEach(function (r) { r.queued = true; });
+      var touched = rows.length > 0;
+      if (!isOpen && !run.clicksQueued) {
+        if (!waiting["Clicks:" + run.runId]) CE.sync.send("Clicks", runClicks(run.runId));
+        run.clicksQueued = true;
+        touched = true;
+      }
+      return touched;
+    }
+    var runs = readRuns();
+    var changedRuns = runs.map(function (run) { return catchUp(run, false); }).some(Boolean);
+    if (changedRuns) saveRuns(runs);
+    if (active && catchUp(active, true)) persist();
   }
 
   // ------------------------------------------------------------ hooks used by app/logger
@@ -470,6 +507,11 @@
         var seen = {};
         current.forEach(function (r) { seen[r.runId] = true; });
         var added = incoming.filter(function (r) { return !seen[r.runId]; });
+        // Imported sessions are the sending browser's job, not ours.
+        added.forEach(function (run) {
+          run.clicksQueued = true;
+          run.results.forEach(function (r) { r.queued = true; });
+        });
         saveRuns(current.concat(added));
         CE.render();
         status("Imported " + CE.plural(added.length, "new session", "new sessions") +
@@ -478,4 +520,5 @@
       reader.readAsText(file);
     });
   }
+  backfill();
 })();

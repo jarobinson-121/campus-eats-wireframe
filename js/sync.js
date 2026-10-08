@@ -70,6 +70,7 @@
       return readQueue().reduce(function (n, b) { return n + b.rows.length; }, 0);
     },
 
+    queued: readQueue,
     error: function () { return lastError; },
     flush: flush,
     // One listener: the Results page, re-registered each time it renders.

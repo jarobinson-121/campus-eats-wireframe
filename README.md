@@ -44,6 +44,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 
 - **Add a cuisine:** add `{ key, name }` to `cuisines` and add the key to each matching restaurant's `cuisine` list.
 - **Fix a location:** change the restaurant's `campus` (`"on"` / `"near"`) and `area`, and set `verified: true`.
+- **Restaurant page details:** edit `details` (building or address, hours, menu highlights, a note, the source). Empty `hours` or `menu` shows "Not found yet."
 - **Tasks:** edit `tasks`. `expect` lists every restaurant that counts as a correct answer.
 
 After any edit, open `#/check` to confirm nothing became unreachable.

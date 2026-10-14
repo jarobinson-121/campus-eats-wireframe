@@ -96,6 +96,9 @@
   CE.task = function (id) {
     return D.tasks.filter(function (t) { return t.id === id; })[0];
   };
+  CE.details = function (id) {
+    return (D.details && D.details[id]) || {};
+  };
   CE.cuisineNames = function (r) {
     return r.cuisine.map(function (k) { return byKey(D.cuisines, k).name; });
   };

@@ -18,7 +18,8 @@
   var homeLink = document.getElementById("top-home");
 
   // ------------------------------------------------------------ fragments
-  function crumbs(trail) {
+  // always: show on every screen size (the columns only need them on phones).
+  function crumbs(trail, always) {
     var parts = ['<a href="#/" data-kind="crumb" data-label="Home (breadcrumb)">Home</a>'];
     trail.forEach(function (n, i) {
       if (i === trail.length - 1) {
@@ -28,7 +29,7 @@
           CE.esc(n.name) + ' (breadcrumb)">' + CE.esc(n.name) + "</a>");
       }
     });
-    return '<nav class="crumbs miller-crumbs" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
+    return '<nav class="crumbs' + (always ? "" : " miller-crumbs") + '" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
   }
 
   function subFor(node) {
@@ -37,12 +38,19 @@
 
   // ------------------------------------------------------------ pages
   function viewHome() {
+    // Each option in a door is its own link, so people can jump straight to
+    // a category; the door's heading still opens the view at the top.
     var tiles = CE.views.map(function (v) {
-      return '<li><a class="tile tile--door" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
-        '<span class="tile__name">' + CE.esc(v.name) + "</span>" +
-        '<span class="tile__sub">' + CE.esc(v.blurb) + "</span>" +
-        '<span class="tile__list">' + v.children.map(function (c) { return CE.esc(c.name); }).join("<br>") + "</span>" +
-        "</a></li>";
+      return '<li><div class="tile tile--door">' +
+        '<a class="tile__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
+          '<span class="tile__name">' + CE.esc(v.name) + "</span>" +
+          '<span class="tile__sub">' + CE.esc(v.blurb) + "</span>" +
+        "</a>" +
+        '<ul class="tile__list">' + v.children.map(function (c) {
+          return '<li><a class="tile__opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
+            CE.esc(c.name) + ' (home shortcut)">' + CE.esc(c.name) + "</a></li>";
+        }).join("") + "</ul>" +
+        "</div></li>";
     }).join("");
     app.innerHTML =
       "<h1>" + CE.esc(D.title) + "</h1>" +
@@ -82,6 +90,70 @@
       '<ul class="collist">' + items + "</ul></section>";
   }
 
+  // A node whose children are restaurants: the point where columns give way
+  // to restaurant cards.
+  function listsRestaurants(node) {
+    return !!(node.children && node.children[0] && node.children[0].block);
+  }
+
+  function trailName(trail) {
+    return trail.slice(1).map(function (n) { return n.name; }).join(" · ");
+  }
+
+  // Sibling categories as chips, so people can switch (e.g. On Campus ↔
+  // Near Campus) without backing out.
+  function siblingChips(trail) {
+    var parentTrail = trail.slice(0, -1);
+    var parent = parentTrail[parentTrail.length - 1];
+    var current = trail[trail.length - 1];
+    if (!parent || parent.children.length < 2) return "";
+    return '<nav aria-label="Other choices under ' + CE.esc(parent.name) + '"><ul class="chips chips--siblings">' +
+      parent.children.map(function (c) {
+        var on = c === current;
+        return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
+          (on ? ' aria-current="true"' : "") +
+          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' + CE.esc(c.name) + "</a></li>";
+      }).join("") + "</ul></nav>";
+  }
+
+  function viewResults(r) {
+    var trail = r.trail;
+    var here = CE.hrefFor(trail, trail.length - 1);
+    // Skip the attribute this view already filtered on; every card would
+    // repeat it.
+    var byFood = r.view.key === "food";
+    var cards = r.node.children.map(function (c) {
+      var rest = CE.restaurant(c.block);
+      var cuisines = CE.cuisineNames(rest);
+      var info = CE.details(rest.id);
+      return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
+        '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
+        '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
+          (cuisines.length ? cuisines.join(", ") : "—")) + "</span>" +
+        '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not found") + "</span>" +
+        '<span class="rcard__go">See details ›</span>' +
+        "</a></li>";
+    }).join("");
+    app.innerHTML =
+      viewTabs(r.view) +
+      crumbs(trail, true) +
+      "<h1>" + CE.esc(trailName(trail)) + "</h1>" +
+      '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
+      siblingChips(trail) +
+      '<ul class="rcards">' + cards + "</ul>";
+  }
+
+  function viewRestaurant(r) {
+    var listTrail = r.trail.slice(0, -1);
+    app.innerHTML =
+      viewTabs(r.view) +
+      crumbs(r.trail, true) +
+      '<h1 class="vh">' + CE.esc(r.node.name) + "</h1>" +
+      '<div class="restpage">' + detail(r) + "</div>" +
+      '<p><a href="' + CE.hrefFor(listTrail, listTrail.length - 1) + '" data-kind="nav" data-label="Back to ' +
+        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>";
+  }
+
   function detail(r) {
     var rest = CE.restaurant(r.node.block);
     var here = CE.hrefFor(r.trail, r.trail.length - 1);
@@ -89,7 +161,8 @@
       return CE.hrefFor(t, t.length - 1) !== here;
     });
     var cuisines = CE.cuisineNames(rest);
-    return '<section class="miller__detail is-current">' +
+    var info = CE.details(rest.id);
+    return '<section>' +
       '<div class="endstate" role="status">' +
         '<p class="endstate__label">You selected</p>' +
         '<p class="endstate__name">' + CE.esc(rest.name) + "</p>" +
@@ -97,9 +170,13 @@
       '<table class="attrs"><tbody>' +
         "<tr><th>Food type</th><td>" + (cuisines.length ? CE.esc(cuisines.join(", ")) : "—") + "</td></tr>" +
         "<tr><th>Location</th><td>" + CE.esc(CE.locationName(rest)) + "</td></tr>" +
+        "<tr><th>Where</th><td>" + CE.esc(info.where || "Not found") + "</td></tr>" +
         "<tr><th>Block ID</th><td>" + CE.esc(rest.id) + "</td></tr>" +
       "</tbody></table>" +
-      placeholder("Hours") + placeholder("Menu highlights") + placeholder("Map / directions") +
+      infoList("Hours", info.hours) + infoList("Menu highlights", info.menu) +
+      (info.note ? '<p class="detail__note">' + CE.esc(info.note) + "</p>" : "") +
+      placeholder("Map / directions") +
+      (info.source ? '<p class="detail__src">Source: ' + CE.esc(info.source) + ". Checked October 2026.</p>" : "") +
       (elsewhere.length ?
         '<h3 class="detail__h">Also listed under</h3><ul class="chips">' + elsewhere.map(function (t) {
           // Chip names the categories only; the view name is implied by them.
@@ -113,26 +190,34 @@
   function viewColumns(r) {
     var trail = r.trail;
     var isLeaf = !!r.node.block;
+    // Columns only for choosing categories; once the list is restaurants,
+    // switch to cards with their top-level details.
+    if (isLeaf) return viewRestaurant(r);
+    if (listsRestaurants(r.node)) return viewResults(r);
     var cols = [];
     trail.forEach(function (node, i) {
       if (!node.children) return;
       var deepest = i === trail.length - 1;
       cols.push(column(trail.slice(0, i + 1), deepest ? null : trail[i + 1].key, deepest));
     });
-    if (isLeaf) {
-      cols.push(detail(r));
-    } else {
-      var next = r.node.children[0] && r.node.children[0].block ? "a restaurant" : "one to see more";
-      cols.push('<div class="miller__ghost" aria-hidden="true">Choose ' + next + " ←</div>");
-    }
+    cols.push('<div class="miller__ghost" aria-hidden="true">Choose one to see more ←</div>');
     app.innerHTML =
-      '<h1 class="vh">' + CE.esc(isLeaf ? r.node.name : r.view.name) + "</h1>" +
+      '<h1 class="vh">' + CE.esc(r.view.name) + "</h1>" +
       viewTabs(r.view) +
       '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" +
       crumbs(trail) +
       '<div class="miller" id="miller">' + cols.join("") + "</div>";
     var miller = document.getElementById("miller");
     miller.scrollLeft = miller.scrollWidth;
+  }
+
+  // A researched list (hours, menu), or a plain "not found" when the
+  // research came up empty, so the gap is visible rather than faked.
+  function infoList(label, items) {
+    return '<h3 class="detail__h">' + CE.esc(label) + "</h3>" +
+      (items && items.length ?
+        '<ul class="detail__list">' + items.map(function (i) { return "<li>" + CE.esc(i) + "</li>"; }).join("") + "</ul>" :
+        '<p class="detail__none">Not found yet.</p>');
   }
 
   function placeholder(label) {
@@ -302,8 +387,10 @@
     document.title = (name === D.title ? "" : name + " — ") + D.title + " (wireframe)";
 
     // Moving between columns of the same view keeps the screen still;
-    // anything else is a new screen and starts at the top.
-    var viewKey = resolved ? resolved.view.key : null;
+    // anything else (including restaurant lists and pages) is a new screen
+    // and starts at the top.
+    var inColumns = resolved && !resolved.node.block && !listsRestaurants(resolved.node);
+    var viewKey = resolved ? (inColumns ? resolved.view.key : hash) : null;
     if (!viewKey || viewKey !== lastViewKey) {
       window.scrollTo(0, 0);
       app.focus({ preventScroll: true });

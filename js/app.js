@@ -43,7 +43,6 @@
     var doors = CE.views.map(function (v) {
       return '<li class="door">' +
         '<a class="door__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
-          icon(v.icon, "door__icon", vt("icon-view-" + v.key)) +
           '<span class="door__text"><span class="door__name"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span>" +
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
@@ -51,7 +50,7 @@
         '<ul class="door__opts">' + v.children.map(function (c) {
           var id = pathId([v], c);
           return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
-            CE.esc(c.name) + ' (home shortcut)">' + icon(c.icon, "opt__icon", vt("icon-" + id)) +
+            CE.esc(c.name) + ' (home shortcut)">' +
             '<span class="opt__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
         }).join("") + "</ul>" +
         "</li>";
@@ -66,13 +65,13 @@
   }
 
   // Shared view-transition names pair content on one page with its
-  // counterpart on the next, so it glides between them. Only icons
-  // and labels travel (they keep their shape, so they scale cleanly);
+  // counterpart on the next, so it glides between them. Only labels
+  // travel (they keep their shape, so they scale cleanly);
   // pills, rows and panels just fade in place.
   //   glide: same shape at both ends, scales smoothly
   //   swap:  shape changes (a wrapped title becomes one line), crossfades
   //   pill:  a highlight (active tab or pill, selected row) that slides
-  //          underneath the icons and labels
+  //          underneath the labels
   function vt(name, kind) {
     return ' style="view-transition-name: vt-' + name + "; view-transition-class: " + (kind || "glide") + '"';
   }
@@ -83,10 +82,6 @@
     return trail.map(function (n) { return n.key; }).concat([child.key]).join("-");
   }
 
-  function icon(glyph, cls, attrs) {
-    return glyph ? '<span class="' + cls + '" aria-hidden="true"' + (attrs || "") + ">" + glyph + "</span>" : "";
-  }
-
   // Browse pages are Finder-style columns: one column per level along the
   // route, the chosen item in each column marked, and the restaurant's
   // details in a final panel. The route still names exactly one node, so
@@ -95,7 +90,7 @@
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
         (v === current ? ' aria-current="true"' + vt("tab-active", "pill") : "") +
-        ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + icon(v.icon, "tab__icon", vt("icon-view-" + v.key)) +
+        ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' +
         '<span class="tab__label"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span></a>";
     }).join("") + "</nav>";
   }
@@ -112,7 +107,6 @@
       return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
         (selected ? ' aria-current="true"' + vt("sel-" + trail.length, "pill") : "") +
         ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        icon(c.icon, "colitem__icon", vt("icon-" + id)) +
         '<span class="colitem__name"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span>" +
         (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
         "</a></li>";
@@ -146,7 +140,6 @@
         return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
           (on ? ' aria-current="true"' + vt("chip-active", "pill") : "") +
           ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
-          icon(c.icon, "chip__icon", vt("icon-" + id)) +
           '<span class="chip__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
       }).join("") + "</ul></nav>";
   }
@@ -162,8 +155,7 @@
       var cuisines = CE.cuisineNames(rest);
       var info = CE.details(rest.id);
       return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        '<span class="rcard__top">' + icon(CE.iconFor(rest), "rcard__icon", vt("icon-r-" + rest.id)) +
-          '<span class="rcard__go" aria-hidden="true">→</span></span>' +
+        '<span class="rcard__go" aria-hidden="true">→</span>' +
         '<span class="rcard__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</span>" +
         '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
           (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
@@ -173,7 +165,7 @@
     app.innerHTML =
       viewTabs(r.view) +
       crumbs(trail, true) +
-      '<div class="pagehead">' + icon(trail[1].icon, "pagehead__icon", trail.length > 2 ? vt("icon-" + pathId([trail[0]], trail[1])) : "") + "<div>" +
+      '<div class="pagehead"><div>' +
         "<h1>" + CE.esc(trailName(trail)) + "</h1>" +
         '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
       "</div></div>" +
@@ -205,7 +197,6 @@
       encodeURIComponent(rest.name + ", " + (info.where || "") + ", Provo, UT");
     return '<section class="rest">' +
       '<div class="rest__hero" role="status">' +
-        icon(CE.iconFor(rest), "rest__icon", vt("icon-r-" + rest.id)) +
         "<div>" +
           '<p class="rest__label">You selected</p>' +
           '<p class="rest__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</p>" +
@@ -216,13 +207,13 @@
         "</div>" +
       "</div>" +
       '<div class="rest__grid">' +
-        infoCard("🕒", "Hours", info.hours) +
-        infoCard("🍽️", "Menu highlights", info.menu,
+        infoCard("Hours", info.hours) +
+        infoCard("Menu highlights", info.menu,
           info.menuUrl ?
             '<a class="infocard__link" href="' + CE.esc(info.menuUrl) + '" target="_blank" rel="noopener" data-kind="menu" data-label="Menu: ' +
               CE.esc(rest.name) + '">' + CE.esc(info.menuLabel || "Full menu") + " ↗</a>" :
             '<p class="infocard__none">No online menu found.</p>') +
-        '<div class="infocard infocard--where"><h3 class="infocard__h">' + icon("📍", "infocard__icon") + "Where</h3>" +
+        '<div class="infocard infocard--where"><h3 class="infocard__h">Where</h3>' +
           '<p class="infocard__text">' + CE.esc(info.where || "Address not found yet.") + "</p>" +
           (info.where ? '<a class="btn btn--main" href="' + mapsUrl + '" target="_blank" rel="noopener" data-kind="maps" data-label="Map: ' +
             CE.esc(rest.name) + '">Open in Maps ↗</a>' : "") +
@@ -253,7 +244,7 @@
       var deepest = i === trail.length - 1;
       cols.push(column(trail.slice(0, i + 1), deepest ? null : trail[i + 1].key, deepest));
     });
-    cols.push('<div class="miller__ghost" aria-hidden="true"><span class="miller__ghosticon">👈</span>Pick one to keep going</div>');
+    cols.push('<div class="miller__ghost" aria-hidden="true">← Pick one to keep going</div>');
     app.innerHTML =
       '<h1 class="vh">' + CE.esc(r.view.name) + "</h1>" +
       viewTabs(r.view) +
@@ -267,8 +258,8 @@
   // A researched list (hours, menu), or a plain "not listed" when the
   // research came up empty, so the gap is visible rather than faked.
   // footer: optional markup under the list (e.g. the full-menu link).
-  function infoCard(glyph, label, items, footer) {
-    return '<div class="infocard"><h3 class="infocard__h">' + icon(glyph, "infocard__icon") + CE.esc(label) + "</h3>" +
+  function infoCard(label, items, footer) {
+    return '<div class="infocard"><h3 class="infocard__h">' + CE.esc(label) + "</h3>" +
       (items && items.length ?
         '<ul class="infocard__list">' + items.map(function (i) { return "<li>" + CE.esc(i) + "</li>"; }).join("") + "</ul>" :
         '<p class="infocard__none">Not listed yet.</p>') +
@@ -453,7 +444,7 @@
   var lastViewKey = null;
 
   // Every in-app navigation (clicks, breadcrumbs, back/forward) animates the
-  // same way: content that appears on both pages (icons, labels, the active
+  // same way: content that appears on both pages (labels, the active
   // tab or pill, the selected row) glides from its old spot to its new one,
   // and everything else fades. The old page is captured before render runs,
   // so the router, click log and test mode are untouched. Browsers without

@@ -82,7 +82,7 @@
         }).join("") +
       "</div>" +
       '<button type="button" class="palette__toggle" data-nolog aria-expanded="false" aria-controls="palette-panel">' +
-        '<span aria-hidden="true">🎨</span><span class="vh">Change color palette</span></button>';
+        '<span class="palette__swatch" aria-hidden="true"></span><span class="vh">Change color palette</span></button>';
     document.body.appendChild(wrap);
 
     var panel = wrap.querySelector(".palette__panel");

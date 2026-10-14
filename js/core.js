@@ -99,10 +99,6 @@
   CE.details = function (id) {
     return (D.details && D.details[id]) || {};
   };
-  // A restaurant's icon is its first food type's; Location-only places get a fork.
-  CE.iconFor = function (r) {
-    return r.cuisine.length ? byKey(D.cuisines, r.cuisine[0]).icon : "🍴";
-  };
   CE.cuisineNames = function (r) {
     return r.cuisine.map(function (k) { return byKey(D.cuisines, k).name; });
   };
@@ -135,18 +131,15 @@
     key: "food",
     name: "Browse by Food Type",
     short: "Food type",
-    icon: "😋",
     blurb: "Pick what you're hungry for, then on or near campus.",
     children: D.cuisines.map(function (c) {
       return {
         key: c.key,
         name: c.name,
-        icon: c.icon,
         children: D.campus.map(function (cp) {
           return {
             key: cp.key,
             name: cp.name,
-            icon: cp.icon,
             children: leaves(function (r) {
               return r.cuisine.indexOf(c.key) !== -1 && r.campus === cp.key;
             })
@@ -160,19 +153,16 @@
     key: "place",
     name: "Browse by Location",
     short: "Location",
-    icon: "📍",
     blurb: "Pick where you are, then a restaurant there.",
     children: D.locations.map(function (l) {
       if (l.campus === "on") {
         return {
           key: l.key,
           name: l.name,
-          icon: l.icon,
           children: D.campusAreas.map(function (a) {
             return {
               key: a.key,
               name: a.name,
-              icon: a.icon,
               children: leaves(function (r) { return r.campus === "on" && r.area === a.key; })
             };
           }).filter(function (n) { return keepOrReport("Browse by Location › " + l.name, n); })
@@ -181,7 +171,6 @@
       return {
         key: l.key,
         name: l.name,
-        icon: l.icon,
         children: leaves(function (r) { return r.campus === "near" && r.area === l.key; })
       };
     }).filter(function (n) { return keepOrReport("Browse by Location", n); })

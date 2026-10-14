@@ -1,6 +1,6 @@
 /* Campus Eats — high-fidelity stylesheet.
-   Clean, minimal, a little playful: soft surfaces, rounded cards, emoji as
-   the only imagery. Each palette is monochromatic (every --main, surface,
+   Clean, minimal, a little playful: soft surfaces, rounded cards, no
+   imagery. Each palette is monochromatic (every --main, surface,
    text and line color is one hue) plus a single --accent. Every color is a
    custom property set by js/palette.js; the values below are the default
    (Cougar) palette, used until that script runs. Desktop first; collapses
@@ -83,18 +83,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   color: var(--ink);
 }
 .topbar__home:hover { text-decoration: none; }
-.brand__mark {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: var(--main);
-  font-size: 20px;
-  transform: rotate(-6deg);
-  transition: transform .25s var(--ease);
-}
-.topbar__home:hover .brand__mark { transform: rotate(6deg) scale(1.06); }
 .topbar__util { display: flex; flex-wrap: wrap; gap: 4px; font-size: 13px; }
 .topbar__util[hidden] { display: none; }
 .topbar__util a { color: var(--muted); padding: 6px 10px; border-radius: 999px; }
@@ -173,18 +161,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   transition: background-color .2s var(--ease);
 }
 .door__head:hover { background: var(--main-soft); text-decoration: none; }
-.door__icon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: var(--main-soft);
-  font-size: 28px;
-  transition: transform .25s var(--ease);
-}
-.door__head:hover .door__icon { transform: rotate(-8deg) scale(1.08); background: var(--surface); }
 .door__text { flex: 1; display: flex; flex-direction: column; }
 .door__name { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
 .door__sub  { font-size: 14px; color: var(--muted); }
@@ -218,7 +194,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   text-decoration: none;
   transform: translateY(-1px);
 }
-.opt__icon, .chip__icon { font-size: 16px; line-height: 1; }
 
 /* ------------------------------------------------------------- browsing */
 .tabs {
@@ -269,34 +244,20 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .collist { list-style: none; margin: 0; padding: 0; }
 .colitem {
   position: relative;
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  column-gap: 8px;
-  align-items: center;
-  padding: 8px 32px 8px 8px;
+  display: block;
+  padding: 8px 32px 8px 12px;
   margin: 2px 0;
   border-radius: var(--radius-sm);
   color: var(--ink);
   transition: background-color .15s var(--ease);
 }
 .colitem:hover { background: var(--main-soft); text-decoration: none; }
-.colitem__icon {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--bg);
-  font-size: 17px;
-}
-.colitem__name { font-weight: 500; justify-self: start; }   /* hug the text: it's a shared-transition target */
-.colitem__sub  { grid-column: 2; font-size: 12px; color: var(--muted); }
+.colitem__name { display: block; width: fit-content; font-weight: 500; }   /* hug the text: it's a shared-transition target */
+.colitem__sub  { display: block; font-size: 12px; color: var(--muted); }
 .colitem__go   { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .colitem.is-selected { background: var(--main); color: var(--main-ink); }
 .colitem.is-selected .colitem__sub,
 .colitem.is-selected .colitem__go { color: var(--main-ink); opacity: .8; }
-.colitem.is-selected .colitem__icon { background: color-mix(in srgb, var(--main-ink) 20%, transparent); }
 
 .miller__ghost {
   flex: 1 1 260px;
@@ -311,23 +272,10 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   color: var(--muted);
   font-size: 15px;
 }
-.miller__ghosticon { font-size: 32px; animation: nudge 1.6s var(--ease) infinite; }
-@keyframes nudge { 50% { transform: translateX(-6px); } }
 
 /* ---------------------------------------------------- restaurant lists */
 .pagehead { display: flex; align-items: center; gap: 16px; margin: 0 0 16px; }
 .pagehead .lede { margin: 0; }
-.pagehead__icon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
-  background: var(--main-soft);
-  font-size: 32px;
-  transform: rotate(-6deg);
-}
 
 .chips { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .chip.is-current { background: var(--main); border-color: var(--main); color: var(--main-ink); }
@@ -353,19 +301,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
 }
 .rcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); border-color: var(--main); text-decoration: none; }
-.rcard__top { display: flex; justify-content: space-between; align-items: flex-start; margin: 0 0 14px; }
-.rcard__icon {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: var(--main-soft);
-  font-size: 24px;
-  transition: transform .25s var(--ease);
-}
-.rcard:hover .rcard__icon { transform: rotate(-8deg) scale(1.08); }
-.rcard__go { color: var(--main); font-size: 20px; opacity: 0; transform: translateX(-6px); transition: all .2s var(--ease); }
+.rcard { position: relative; }
+.rcard__go { position: absolute; top: 16px; right: 18px; color: var(--main); font-size: 20px; opacity: 0; transform: translateX(-6px); transition: all .2s var(--ease); }
 .rcard:hover .rcard__go { opacity: 1; transform: none; }
 .rcard__name { align-self: flex-start; font-family: var(--font-display); font-size: 20px; font-weight: 800; line-height: 1.2; margin: 0 0 4px; }
 .rcard__meta { font-size: 14px; color: var(--muted); }
@@ -392,18 +329,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
-.rest__icon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 84px;
-  height: 84px;
-  border-radius: 24px;
-  background: var(--surface);
-  font-size: 44px;
-  transform: rotate(-6deg);
-  box-shadow: var(--shadow);
-}
 .rest__label { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 .rest__name { width: fit-content; margin: 0 0 10px; font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1.05; }
 .tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -423,7 +348,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   box-shadow: var(--shadow);
 }
 .infocard__h { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 17px; font-weight: 800; }
-.infocard__icon { font-size: 18px; }
 .infocard__list { list-style: none; margin: 0; padding: 0; font-size: 15px; }
 .infocard__list li { padding: 6px 0; border-bottom: 1px dashed var(--line); }
 .infocard__list li:last-child { border-bottom: 0; }
@@ -542,13 +466,20 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   height: 54px;
   border: 0;
   border-radius: 50%;
-  background: var(--main);
+  background: var(--surface);
   box-shadow: var(--shadow-lift);
-  font-size: 24px;
   cursor: pointer;
   transition: transform .25s var(--ease);
 }
 .palette__toggle:hover { transform: rotate(-15deg) scale(1.06); }
+/* Half main color, half accent: shows the current palette at a glance. */
+.palette__swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: conic-gradient(var(--main) 0 50%, var(--accent) 0);
+  transform: rotate(45deg);
+}
 .palette__toggle[aria-expanded="true"] { transform: rotate(20deg); }
 .palette__panel {
   width: 210px;
@@ -609,10 +540,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .miller > :not(.is-current) { display: none; }
   .miller__col { flex: 1 1 auto; border-right: 0; }
 
-  .pagehead__icon { width: 52px; height: 52px; font-size: 26px; }
   .rcards { grid-template-columns: 1fr; }
   .rest__hero { flex-direction: column; align-items: flex-start; padding: 22px; }
-  .rest__icon { width: 68px; height: 68px; font-size: 36px; }
   .rest__name { font-size: 30px; }
   .card { padding: 20px; }
   .card__scenario { font-size: 20px; }
@@ -621,7 +550,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 
 /* ------------------------------------------------ page-to-page morph */
 /* Scoped to .vt, set while any navigation animates (app.js). Only content
-   travels: icons and labels glide to wherever the same thing appears on the
+   travels: labels glide to wherever the same thing appears on the
    next page (home chip → column row → sibling pill; restaurant card → its
    page), along with the active tab, active pill and selected row. Containers
    (cards, rows, panels) simply fade in place, and the header stays put. */

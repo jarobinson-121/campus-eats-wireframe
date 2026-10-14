@@ -43,14 +43,16 @@
     var doors = CE.views.map(function (v) {
       return '<li class="door">' +
         '<a class="door__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
-          icon(v.icon, "door__icon") +
-          '<span class="door__text"><span class="door__name"' + vt("view-" + v.key) + ">" + CE.esc(v.name) + "</span>" +
+          icon(v.icon, "door__icon", vt("icon-view-" + v.key)) +
+          '<span class="door__text"><span class="door__name"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span>" +
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
         '<ul class="door__opts">' + v.children.map(function (c) {
-          return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '"' + vt("cat-" + v.key + "-" + c.key) + ' data-kind="tile" data-label="' +
-            CE.esc(c.name) + ' (home shortcut)">' + icon(c.icon, "opt__icon") + CE.esc(c.name) + "</a></li>";
+          var id = v.key + "-" + c.key;
+          return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
+            CE.esc(c.name) + ' (home shortcut)">' + icon(c.icon, "opt__icon", vt("icon-" + id)) +
+            '<span class="opt__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
         }).join("") + "</ul>" +
         "</li>";
     }).join("");
@@ -63,15 +65,18 @@
       '<ul class="doors">' + doors + "</ul>";
   }
 
-  // Shared view-transition names pair an element on the home page with its
-  // counterpart on the browse page (door title ↔ tab, category chip ↔
-  // first-column row or sibling pill), so the move between them animates.
-  function vt(name) {
-    return ' style="view-transition-name: vt-' + name + '; view-transition-class: morph"';
+  // Shared view-transition names pair content on the home page with its
+  // counterpart on the browse page, so it glides between them. Only icons
+  // and labels travel (they keep their shape, so they scale cleanly);
+  // pills, rows and panels just fade in place.
+  //   glide: same shape at both ends, scales smoothly
+  //   swap:  shape changes (a wrapped title becomes one line), crossfades
+  function vt(name, kind) {
+    return ' style="view-transition-name: vt-' + name + "; view-transition-class: " + (kind || "glide") + '"';
   }
 
-  function icon(glyph, cls) {
-    return glyph ? '<span class="' + cls + '" aria-hidden="true">' + glyph + "</span>" : "";
+  function icon(glyph, cls, attrs) {
+    return glyph ? '<span class="' + cls + '" aria-hidden="true"' + (attrs || "") + ">" + glyph + "</span>" : "";
   }
 
   // Browse pages are Finder-style columns: one column per level along the
@@ -81,8 +86,9 @@
   function viewTabs(current) {
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
-        (v === current ? ' aria-current="true"' : "") + vt("view-" + v.key) +
-        ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + icon(v.icon, "tab__icon") + CE.esc(v.name) + "</a>";
+        (v === current ? ' aria-current="true"' : "") +
+        ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + icon(v.icon, "tab__icon", vt("icon-view-" + v.key)) +
+        '<span class="tab__label"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span></a>";
     }).join("") + "</nav>";
   }
 
@@ -92,14 +98,14 @@
     // Name the parent too: "On Campus" alone is ambiguous two levels down.
     var heading = trail.length === 1 ? node.short :
       (trail.length > 2 ? trail[trail.length - 2].name + " · " : "") + node.name;
+    var top = trail.length === 1;   // first column: home's chips land here
     var items = node.children.map(function (c) {
       var selected = c.key === selectedKey;
       return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
         (selected ? ' aria-current="true"' : "") +
-        (trail.length === 1 ? vt("cat-" + node.key + "-" + c.key) : "") +
         ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        icon(c.icon, "colitem__icon") +
-        '<span class="colitem__name">' + CE.esc(c.name) + "</span>" +
+        icon(c.icon, "colitem__icon", top ? vt("icon-" + node.key + "-" + c.key) : "") +
+        '<span class="colitem__name"' + (top ? vt("label-" + node.key + "-" + c.key) : "") + ">" + CE.esc(c.name) + "</span>" +
         (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
         "</a></li>";
     }).join("");
@@ -128,10 +134,12 @@
     return '<nav aria-label="Other choices under ' + CE.esc(parent.name) + '"><ul class="chips chips--siblings">' +
       parent.children.map(function (c) {
         var on = c === current;
+        var top = parentTrail.length === 1, id = parent.key + "-" + c.key;
         return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
           (on ? ' aria-current="true"' : "") +
-          (parentTrail.length === 1 ? vt("cat-" + parent.key + "-" + c.key) : "") +
-          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' + icon(c.icon, "chip__icon") + CE.esc(c.name) + "</a></li>";
+          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
+          icon(c.icon, "chip__icon", top ? vt("icon-" + id) : "") +
+          '<span class="chip__label"' + (top ? vt("label-" + id) : "") + ">" + CE.esc(c.name) + "</span></a></li>";
       }).join("") + "</ul></nav>";
   }
 
@@ -454,8 +462,9 @@
     // after another; the delays need a stylesheet (pseudo-elements only).
     var stagger = document.createElement("style");
     stagger.textContent = Array.prototype.map.call(link.closest(".door").querySelectorAll(".opt"), function (o, i) {
-      var name = o.style.viewTransitionName;
-      return name ? "::view-transition-group(" + name + ") { animation-delay: " + (i * 25) + "ms; }" : "";
+      return Array.prototype.map.call(o.querySelectorAll("[style]"), function (el) {
+        return "::view-transition-group(" + el.style.viewTransitionName + ") { animation-delay: " + (i * 14) + "ms; }";
+      }).join("\n");
     }).join("\n");
     document.head.appendChild(stagger);
     document.documentElement.classList.add("vt-home");

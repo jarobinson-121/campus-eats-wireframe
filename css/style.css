@@ -290,7 +290,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   background: var(--bg);
   font-size: 17px;
 }
-.colitem__name { font-weight: 500; }
+.colitem__name { font-weight: 500; justify-self: start; }   /* hug the text: it's a shared-transition target */
 .colitem__sub  { grid-column: 2; font-size: 12px; color: var(--muted); }
 .colitem__go   { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .colitem.is-selected { background: var(--main); color: var(--main-ink); }
@@ -621,29 +621,58 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 
 /* ------------------------------------------------- home → browse morph */
 /* Scoped to .vt-home, set only while a home-page click animates (app.js).
-   Named pairs (door title ↔ tab, chip ↔ column row) glide between their
-   spots; everything else crossfades underneath. */
+   Only content travels: icons and labels glide from the home cards into the
+   tab switcher and the first column. Containers (cards, pills, rows, the
+   column panel) simply fade in place underneath, and the header stays put. */
+
+/* The header and palette button look identical on both pages: hold them
+   still instead of crossfading them with the rest of the page. */
+.topbar  { view-transition-name: topbar; }
+.palette { view-transition-name: palette; }
+html.vt-home::view-transition-group(topbar),
+html.vt-home::view-transition-group(palette),
+html.vt-home::view-transition-new(topbar),
+html.vt-home::view-transition-new(palette) { animation: none; }
+html.vt-home::view-transition-old(topbar),
+html.vt-home::view-transition-old(palette) { display: none; }
+
+/* Everything that travels: one smooth ease-out, no overshoot. */
 html.vt-home::view-transition-group(*) {
-  animation-duration: .55s;
-  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+  animation-duration: .48s;
+  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
 }
-/* Keep text proportions while the box changes shape, instead of stretching. */
-html.vt-home::view-transition-old(*.morph),
-html.vt-home::view-transition-new(*.morph) {
+
+/* Glide pairs keep their shape, so let both snapshots fill the box and
+   scale with it; old and new overlap exactly, so the crossfade is invisible. */
+html.vt-home::view-transition-old(*.glide),
+html.vt-home::view-transition-new(*.glide) {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+/* Swap pairs change shape (a wrapped title becomes a one-line tab label):
+   hand off early and don't scale, so the text never stretches or doubles. */
+html.vt-home::view-transition-old(*.swap),
+html.vt-home::view-transition-new(*.swap) {
   height: 100%;
   width: auto;
   object-fit: none;
   object-position: left center;
 }
-/* Hand off from old look to new early in the glide, so text never doubles. */
-html.vt-home::view-transition-old(*.morph) { animation: vt-fade-out .18s ease both; }
-html.vt-home::view-transition-new(*.morph) { animation: vt-fade-in .26s .06s ease both; }
-@keyframes vt-fade-in { from { opacity: 0; } }
-/* The other door's chips have no partner on the new page: fade them fast
-   so they don't linger over the columns. */
-html.vt-home::view-transition-old(*.morph):only-child { animation: vt-fade-out .16s ease both; }
-html.vt-home::view-transition-new(*.morph):only-child { animation: vt-rise-in .35s .15s ease both; }
-html.vt-home::view-transition-old(root) { animation: vt-fade-out .22s ease both; }
-html.vt-home::view-transition-new(root) { animation: vt-rise-in .45s .12s cubic-bezier(.2, .8, .2, 1) both; }
+html.vt-home::view-transition-old(*.swap) { animation: vt-fade-out .14s ease-out both; }
+html.vt-home::view-transition-new(*.swap) { animation: vt-fade-in .22s .05s ease-out both; }
+
+/* Content with no partner (the other card's chips) fades out fast. */
+html.vt-home::view-transition-old(*.glide):only-child,
+html.vt-home::view-transition-old(*.swap):only-child { animation: vt-fade-out .14s ease-out both; }
+html.vt-home::view-transition-new(*.glide):only-child,
+html.vt-home::view-transition-new(*.swap):only-child { animation: vt-fade-in .25s .2s ease-out both; }
+
+/* The page itself: old out quickly, new in behind the travelling content.
+   No slide, so nothing in the new page drifts out of line with it. */
+html.vt-home::view-transition-old(root) { animation: vt-fade-out .12s ease-out both; }
+html.vt-home::view-transition-new(root) { animation: vt-fade-in .3s .1s ease-out both; }
+
 @keyframes vt-fade-out { to { opacity: 0; } }
-@keyframes vt-rise-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes vt-fade-in { from { opacity: 0; } }

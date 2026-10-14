@@ -192,7 +192,11 @@
       "</div>" +
       '<div class="rest__grid">' +
         infoCard("🕒", "Hours", info.hours) +
-        infoCard("🍽️", "Menu highlights", info.menu) +
+        infoCard("🍽️", "Menu highlights", info.menu,
+          info.menuUrl ?
+            '<a class="infocard__link" href="' + CE.esc(info.menuUrl) + '" target="_blank" rel="noopener" data-kind="menu" data-label="Menu: ' +
+              CE.esc(rest.name) + '">' + CE.esc(info.menuLabel || "Full menu") + " ↗</a>" :
+            '<p class="infocard__none">No online menu found.</p>') +
         '<div class="infocard infocard--where"><h3 class="infocard__h">' + icon("📍", "infocard__icon") + "Where</h3>" +
           '<p class="infocard__text">' + CE.esc(info.where || "Address not found yet.") + "</p>" +
           (info.where ? '<a class="btn btn--main" href="' + mapsUrl + '" target="_blank" rel="noopener" data-kind="maps" data-label="Map: ' +
@@ -237,11 +241,13 @@
 
   // A researched list (hours, menu), or a plain "not listed" when the
   // research came up empty, so the gap is visible rather than faked.
-  function infoCard(glyph, label, items) {
+  // footer: optional markup under the list (e.g. the full-menu link).
+  function infoCard(glyph, label, items, footer) {
     return '<div class="infocard"><h3 class="infocard__h">' + icon(glyph, "infocard__icon") + CE.esc(label) + "</h3>" +
       (items && items.length ?
         '<ul class="infocard__list">' + items.map(function (i) { return "<li>" + CE.esc(i) + "</li>"; }).join("") + "</ul>" :
         '<p class="infocard__none">Not listed yet.</p>') +
+      (footer ? '<div class="infocard__foot">' + footer + "</div>" : "") +
       "</div>";
   }
 

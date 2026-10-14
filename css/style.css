@@ -429,6 +429,12 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .infocard__list li:last-child { border-bottom: 0; }
 .infocard__none { margin: 0; color: var(--muted); font-style: italic; }
 .infocard__text { margin: 0 0 14px; }
+.infocard { display: flex; flex-direction: column; align-items: flex-start; }
+.infocard > * { max-width: 100%; }
+.infocard__list { align-self: stretch; }
+.infocard__foot { margin-top: auto; padding-top: 12px; }
+.infocard__foot .infocard__none { font-size: 14px; }
+.infocard__link { font-weight: 700; font-size: 14px; }
 
 .section-h { font-size: 17px; font-weight: 800; margin: 28px 0 10px; }
 .finesrc { font-size: 12px; color: var(--muted); margin: 0 0 16px; }

@@ -49,7 +49,7 @@
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
         '<ul class="door__opts">' + v.children.map(function (c) {
-          var id = v.key + "-" + c.key;
+          var id = pathId([v], c);
           return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
             CE.esc(c.name) + ' (home shortcut)">' + icon(c.icon, "opt__icon", vt("icon-" + id)) +
             '<span class="opt__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
@@ -65,14 +65,22 @@
       '<ul class="doors">' + doors + "</ul>";
   }
 
-  // Shared view-transition names pair content on the home page with its
-  // counterpart on the browse page, so it glides between them. Only icons
+  // Shared view-transition names pair content on one page with its
+  // counterpart on the next, so it glides between them. Only icons
   // and labels travel (they keep their shape, so they scale cleanly);
   // pills, rows and panels just fade in place.
   //   glide: same shape at both ends, scales smoothly
   //   swap:  shape changes (a wrapped title becomes one line), crossfades
+  //   pill:  a highlight (active tab or pill, selected row) that slides
+  //          underneath the icons and labels
   function vt(name, kind) {
     return ' style="view-transition-name: vt-' + name + "; view-transition-class: " + (kind || "glide") + '"';
+  }
+
+  // A category's id is its path (food-asian-near), so the same category
+  // pairs up wherever it appears: home chip, column row or sibling pill.
+  function pathId(trail, child) {
+    return trail.map(function (n) { return n.key; }).concat([child.key]).join("-");
   }
 
   function icon(glyph, cls, attrs) {
@@ -86,7 +94,7 @@
   function viewTabs(current) {
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
-        (v === current ? ' aria-current="true"' : "") +
+        (v === current ? ' aria-current="true"' + vt("tab-active", "pill") : "") +
         ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + icon(v.icon, "tab__icon", vt("icon-view-" + v.key)) +
         '<span class="tab__label"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span></a>";
     }).join("") + "</nav>";
@@ -98,14 +106,14 @@
     // Name the parent too: "On Campus" alone is ambiguous two levels down.
     var heading = trail.length === 1 ? node.short :
       (trail.length > 2 ? trail[trail.length - 2].name + " · " : "") + node.name;
-    var top = trail.length === 1;   // first column: home's chips land here
     var items = node.children.map(function (c) {
       var selected = c.key === selectedKey;
+      var id = pathId(trail, c);
       return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
-        (selected ? ' aria-current="true"' : "") +
+        (selected ? ' aria-current="true"' + vt("sel-" + trail.length, "pill") : "") +
         ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        icon(c.icon, "colitem__icon", top ? vt("icon-" + node.key + "-" + c.key) : "") +
-        '<span class="colitem__name"' + (top ? vt("label-" + node.key + "-" + c.key) : "") + ">" + CE.esc(c.name) + "</span>" +
+        icon(c.icon, "colitem__icon", vt("icon-" + id)) +
+        '<span class="colitem__name"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span>" +
         (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
         "</a></li>";
     }).join("");
@@ -134,12 +142,12 @@
     return '<nav aria-label="Other choices under ' + CE.esc(parent.name) + '"><ul class="chips chips--siblings">' +
       parent.children.map(function (c) {
         var on = c === current;
-        var top = parentTrail.length === 1, id = parent.key + "-" + c.key;
+        var id = pathId(parentTrail, c);
         return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
-          (on ? ' aria-current="true"' : "") +
+          (on ? ' aria-current="true"' + vt("chip-active", "pill") : "") +
           ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
-          icon(c.icon, "chip__icon", top ? vt("icon-" + id) : "") +
-          '<span class="chip__label"' + (top ? vt("label-" + id) : "") + ">" + CE.esc(c.name) + "</span></a></li>";
+          icon(c.icon, "chip__icon", vt("icon-" + id)) +
+          '<span class="chip__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
       }).join("") + "</ul></nav>";
   }
 
@@ -154,9 +162,9 @@
       var cuisines = CE.cuisineNames(rest);
       var info = CE.details(rest.id);
       return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        '<span class="rcard__top">' + icon(CE.iconFor(rest), "rcard__icon") +
+        '<span class="rcard__top">' + icon(CE.iconFor(rest), "rcard__icon", vt("icon-r-" + rest.id)) +
           '<span class="rcard__go" aria-hidden="true">→</span></span>' +
-        '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
+        '<span class="rcard__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</span>" +
         '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
           (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
         '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
@@ -165,7 +173,7 @@
     app.innerHTML =
       viewTabs(r.view) +
       crumbs(trail, true) +
-      '<div class="pagehead">' + icon(trail[1].icon, "pagehead__icon") + "<div>" +
+      '<div class="pagehead">' + icon(trail[1].icon, "pagehead__icon", trail.length > 2 ? vt("icon-" + pathId([trail[0]], trail[1])) : "") + "<div>" +
         "<h1>" + CE.esc(trailName(trail)) + "</h1>" +
         '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
       "</div></div>" +
@@ -197,10 +205,10 @@
       encodeURIComponent(rest.name + ", " + (info.where || "") + ", Provo, UT");
     return '<section class="rest">' +
       '<div class="rest__hero" role="status">' +
-        icon(CE.iconFor(rest), "rest__icon") +
+        icon(CE.iconFor(rest), "rest__icon", vt("icon-r-" + rest.id)) +
         "<div>" +
           '<p class="rest__label">You selected</p>' +
-          '<p class="rest__name">' + CE.esc(rest.name) + "</p>" +
+          '<p class="rest__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</p>" +
           '<ul class="tags">' +
             cuisines.map(function (n) { return '<li class="tag">' + CE.esc(n) + "</li>"; }).join("") +
             '<li class="tag tag--place">' + CE.esc(CE.locationName(rest)) + "</li>" +
@@ -444,42 +452,47 @@
   };
   var lastViewKey = null;
 
-  window.addEventListener("hashchange", CE.render);
-
-  // Home → browse: the door titles glide up into the tab switcher and the
-  // category chips slide into the first column. The click is still logged
-  // (capture phase, in logger.js) and the page still renders through the
-  // normal hashchange; the transition just waits for that render. Browsers
-  // without view transitions, or with reduced motion on, navigate as usual.
+  // Every in-app navigation (clicks, breadcrumbs, back/forward) animates the
+  // same way: content that appears on both pages (icons, labels, the active
+  // tab or pill, the selected row) glides from its old spot to its new one,
+  // and everything else fades. The old page is captured before render runs,
+  // so the router, click log and test mode are untouched. Browsers without
+  // view transitions, or with reduced motion on, just render.
   var calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-  document.addEventListener("click", function (e) {
-    var link = e.target.closest(".door__head, .opt");
-    if (!link || !document.startViewTransition || calm.matches) return;
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    e.preventDefault();
-    var target = link.getAttribute("href");
-    // Stagger the chips of the chosen door so they land in the column one
-    // after another; the delays need a stylesheet (pseudo-elements only).
-    var stagger = document.createElement("style");
-    stagger.textContent = Array.prototype.map.call(link.closest(".door").querySelectorAll(".opt"), function (o, i) {
-      return Array.prototype.map.call(o.querySelectorAll("[style]"), function (el) {
-        return "::view-transition-group(" + el.style.viewTransitionName + ") { animation-delay: " + (i * 14) + "ms; }";
-      }).join("\n");
-    }).join("\n");
-    document.head.appendChild(stagger);
-    document.documentElement.classList.add("vt-home");
-    var t = document.startViewTransition(function () {
-      return new Promise(function (done) {
-        window.addEventListener("hashchange", function () { done(); }, { once: true });
-        setTimeout(done, 600);   // never hang if the hash doesn't change
-        window.location.hash = target;
+  var stagger = document.createElement("style");
+  document.head.appendChild(stagger);
+  var running = null;
+
+  // Items in a list land one after another (a cascade, not a jump). The
+  // delays have to live in a stylesheet: they target pseudo-elements.
+  function cascade() {
+    var rules = [];
+    app.querySelectorAll(".collist, .chips--siblings, .door__opts").forEach(function (list) {
+      Array.prototype.forEach.call(list.children, function (li, i) {
+        li.querySelectorAll("[style*=view-transition-name]").forEach(function (el) {
+          rules.push("::view-transition-group(" + el.style.viewTransitionName + ") { animation-delay: " + (i * 14) + "ms; }");
+        });
       });
     });
+    stagger.textContent = rules.join("\n");
+  }
+
+  window.addEventListener("hashchange", function () {
+    if (!document.startViewTransition || calm.matches) { CE.render(); return; }
+    var root = document.documentElement;
+    root.classList.add("vt");
+    var t = document.startViewTransition(function () {
+      CE.render();
+      cascade();
+    });
+    running = t;
     t.finished.finally(function () {
-      document.documentElement.classList.remove("vt-home");
-      stagger.remove();
+      if (running !== t) return;   // a newer navigation took over
+      root.classList.remove("vt");
+      stagger.textContent = "";
     });
   });
+
   setInterval(CE.test.tick, 1000);
   CE.render();
 })();

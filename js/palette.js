@@ -15,8 +15,8 @@
   // contrasting accent, used sparingly (highlights, the place tag, notices).
   var PALETTES = [
     { key: "cougar",    name: "Cougar",     h: 216, s: 62, accent: "#f5b83d", accentInk: "#2e1f00" },
-    { key: "tangerine", name: "Tangerine",  h: 22,  s: 85, l: 39, accent: "#14b8a6", accentInk: "#022c27" },
-    { key: "matcha",    name: "Matcha",     h: 135, s: 38, accent: "#f472b6", accentInk: "#3b0820" },
+    { key: "tangerine", name: "Tangerine",  h: 22,  s: 85, l: 39, accent: "#e9b949", accentInk: "#2e2100" },
+    { key: "matcha",    name: "Matcha",     h: 135, s: 38, accent: "#c8733a", accentInk: "#241003" },
     { key: "grape",     name: "Grape Soda", h: 265, s: 60, accent: "#facc15", accentInk: "#2e2400" },
     { key: "midnight",  name: "Midnight",   h: 222, s: 30, accent: "#22d3ee", accentInk: "#032b33", dark: true }
   ];

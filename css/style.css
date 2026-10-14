@@ -618,3 +618,32 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .card__scenario { font-size: 20px; }
   .palette { right: 16px; bottom: 16px; }
 }
+
+/* ------------------------------------------------- home → browse morph */
+/* Scoped to .vt-home, set only while a home-page click animates (app.js).
+   Named pairs (door title ↔ tab, chip ↔ column row) glide between their
+   spots; everything else crossfades underneath. */
+html.vt-home::view-transition-group(*) {
+  animation-duration: .55s;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+/* Keep text proportions while the box changes shape, instead of stretching. */
+html.vt-home::view-transition-old(*.morph),
+html.vt-home::view-transition-new(*.morph) {
+  height: 100%;
+  width: auto;
+  object-fit: none;
+  object-position: left center;
+}
+/* Hand off from old look to new early in the glide, so text never doubles. */
+html.vt-home::view-transition-old(*.morph) { animation: vt-fade-out .18s ease both; }
+html.vt-home::view-transition-new(*.morph) { animation: vt-fade-in .26s .06s ease both; }
+@keyframes vt-fade-in { from { opacity: 0; } }
+/* The other door's chips have no partner on the new page: fade them fast
+   so they don't linger over the columns. */
+html.vt-home::view-transition-old(*.morph):only-child { animation: vt-fade-out .16s ease both; }
+html.vt-home::view-transition-new(*.morph):only-child { animation: vt-rise-in .35s .15s ease both; }
+html.vt-home::view-transition-old(root) { animation: vt-fade-out .22s ease both; }
+html.vt-home::view-transition-new(root) { animation: vt-rise-in .45s .12s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-rise-in { from { opacity: 0; transform: translateY(10px); } }

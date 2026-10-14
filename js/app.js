@@ -44,12 +44,12 @@
       return '<li class="door">' +
         '<a class="door__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
           icon(v.icon, "door__icon") +
-          '<span class="door__text"><span class="door__name">' + CE.esc(v.name) + "</span>" +
+          '<span class="door__text"><span class="door__name"' + vt("view-" + v.key) + ">" + CE.esc(v.name) + "</span>" +
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
         '<ul class="door__opts">' + v.children.map(function (c) {
-          return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
+          return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '"' + vt("cat-" + v.key + "-" + c.key) + ' data-kind="tile" data-label="' +
             CE.esc(c.name) + ' (home shortcut)">' + icon(c.icon, "opt__icon") + CE.esc(c.name) + "</a></li>";
         }).join("") + "</ul>" +
         "</li>";
@@ -63,6 +63,13 @@
       '<ul class="doors">' + doors + "</ul>";
   }
 
+  // Shared view-transition names pair an element on the home page with its
+  // counterpart on the browse page (door title ↔ tab, category chip ↔
+  // first-column row or sibling pill), so the move between them animates.
+  function vt(name) {
+    return ' style="view-transition-name: vt-' + name + '; view-transition-class: morph"';
+  }
+
   function icon(glyph, cls) {
     return glyph ? '<span class="' + cls + '" aria-hidden="true">' + glyph + "</span>" : "";
   }
@@ -74,7 +81,7 @@
   function viewTabs(current) {
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
-        (v === current ? ' aria-current="true"' : "") +
+        (v === current ? ' aria-current="true"' : "") + vt("view-" + v.key) +
         ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' + icon(v.icon, "tab__icon") + CE.esc(v.name) + "</a>";
     }).join("") + "</nav>";
   }
@@ -89,6 +96,7 @@
       var selected = c.key === selectedKey;
       return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
         (selected ? ' aria-current="true"' : "") +
+        (trail.length === 1 ? vt("cat-" + node.key + "-" + c.key) : "") +
         ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
         icon(c.icon, "colitem__icon") +
         '<span class="colitem__name">' + CE.esc(c.name) + "</span>" +
@@ -122,6 +130,7 @@
         var on = c === current;
         return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
           (on ? ' aria-current="true"' : "") +
+          (parentTrail.length === 1 ? vt("cat-" + parent.key + "-" + c.key) : "") +
           ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' + icon(c.icon, "chip__icon") + CE.esc(c.name) + "</a></li>";
       }).join("") + "</ul></nav>";
   }
@@ -428,6 +437,40 @@
   var lastViewKey = null;
 
   window.addEventListener("hashchange", CE.render);
+
+  // Home → browse: the door titles glide up into the tab switcher and the
+  // category chips slide into the first column. The click is still logged
+  // (capture phase, in logger.js) and the page still renders through the
+  // normal hashchange; the transition just waits for that render. Browsers
+  // without view transitions, or with reduced motion on, navigate as usual.
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+  document.addEventListener("click", function (e) {
+    var link = e.target.closest(".door__head, .opt");
+    if (!link || !document.startViewTransition || calm.matches) return;
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    var target = link.getAttribute("href");
+    // Stagger the chips of the chosen door so they land in the column one
+    // after another; the delays need a stylesheet (pseudo-elements only).
+    var stagger = document.createElement("style");
+    stagger.textContent = Array.prototype.map.call(link.closest(".door").querySelectorAll(".opt"), function (o, i) {
+      var name = o.style.viewTransitionName;
+      return name ? "::view-transition-group(" + name + ") { animation-delay: " + (i * 25) + "ms; }" : "";
+    }).join("\n");
+    document.head.appendChild(stagger);
+    document.documentElement.classList.add("vt-home");
+    var t = document.startViewTransition(function () {
+      return new Promise(function (done) {
+        window.addEventListener("hashchange", function () { done(); }, { once: true });
+        setTimeout(done, 600);   // never hang if the hash doesn't change
+        window.location.hash = target;
+      });
+    });
+    t.finished.finally(function () {
+      document.documentElement.classList.remove("vt-home");
+      stagger.remove();
+    });
+  });
   setInterval(CE.test.tick, 1000);
   CE.render();
 })();

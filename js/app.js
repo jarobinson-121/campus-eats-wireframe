@@ -195,7 +195,7 @@
         infoCard("🍽️", "Menu highlights", info.menu) +
         '<div class="infocard infocard--where"><h3 class="infocard__h">' + icon("📍", "infocard__icon") + "Where</h3>" +
           '<p class="infocard__text">' + CE.esc(info.where || "Address not found yet.") + "</p>" +
-          (info.where ? '<a class="btn btn--accent" href="' + mapsUrl + '" target="_blank" rel="noopener" data-kind="maps" data-label="Map: ' +
+          (info.where ? '<a class="btn btn--main" href="' + mapsUrl + '" target="_blank" rel="noopener" data-kind="maps" data-label="Map: ' +
             CE.esc(rest.name) + '">Open in Maps ↗</a>' : "") +
         "</div>" +
       "</div>" +

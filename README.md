@@ -1,6 +1,6 @@
-# Campus Eats: wireframe
+# Campus Eats: prototype
 
-A lo-fi clickable wireframe for Campus Eats, which shows where to eat on and near BYU campus (CS 356, Part 1).
+A high-fidelity clickable prototype of Campus Eats, which shows where to eat on and near BYU campus (CS 356, Part 1).
 The 34 restaurants from our card sort can be found two ways: **by food type** and **by location**.
 
 ## Run it
@@ -28,7 +28,8 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 | `js/logger.js` | Records every click to `localStorage`; JSON/CSV export. |
 | `js/sync.js` | Sends test results and their clicks to the team Google Sheet (Apps Script web app set in `data.js` → `sheet`), with an offline retry queue. |
 | `js/testmode.js` | Test mode: shuffled tasks, timer, give-up, resume after reload, results with export/import. |
-| `css/wireframe.css` | Wireframe styles: one font, black and white, one tile style. |
+| `css/style.css` | High-fidelity styles. Every color is a palette variable. |
+| `js/palette.js` | The five color palettes and the switcher in the bottom-right corner (hidden during test runs, not logged). |
 
 ## Pages
 

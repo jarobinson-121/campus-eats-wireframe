@@ -26,25 +26,25 @@ window.CE_DATA = {
   // report. Restaurants whose cuisine fits none of these have cuisine: []
   // and are reachable through Location only (allowed by the coverage rule).
   cuisines: [
-    { key: "burgers", name: "Burgers" },
-    { key: "pizza", name: "Pizza" },
-    { key: "chicken", name: "Fried Chicken" },
-    { key: "asian", name: "Asian" },
-    { key: "mexican", name: "Mexican" },
-    { key: "healthy", name: "Healthy" },
+    { key: "burgers", name: "Burgers", icon: "🍔" },
+    { key: "pizza", name: "Pizza", icon: "🍕" },
+    { key: "chicken", name: "Fried Chicken", icon: "🍗" },
+    { key: "asian", name: "Asian", icon: "🍜" },
+    { key: "mexican", name: "Mexican", icon: "🌮" },
+    { key: "healthy", name: "Healthy", icon: "🥗" },
     // Added from the raw sorts: Cafe (sorts 4 and 8), Hawaiian and BBQ
     // (sort 4 each). Roni's, The Blue Line and J Dawgs got no cuisine label
     // from any sorter, so they stay Location-only rather than going in a Misc.
-    { key: "hawaiian", name: "Hawaiian" },
-    { key: "bbq", name: "BBQ" },
-    { key: "cafe", name: "Cafe" }
+    { key: "hawaiian", name: "Hawaiian", icon: "🌺" },
+    { key: "bbq", name: "BBQ", icon: "🍖" },
+    { key: "cafe", name: "Cafe", icon: "☕" }
   ],
 
   // Level 2 of the cuisine view. BYU / not-BYU appeared in 5 of 14 sorts;
   // the report calls it a lower-level filter, not a top-level category.
   campus: [
-    { key: "on", name: "On Campus" },
-    { key: "near", name: "Near Campus" }
+    { key: "on", name: "On Campus", icon: "🎓" },
+    { key: "near", name: "Near Campus", icon: "🚶" }
   ],
 
   // ---------------------------------------------------------------- view 2
@@ -53,18 +53,18 @@ window.CE_DATA = {
   // "North Campus", ...). The off-campus directions go straight to
   // restaurants.
   locations: [
-    { key: "on-campus", name: "On Campus", campus: "on" },
-    { key: "north", name: "North of Campus", campus: "near" },
-    { key: "west", name: "West of Campus", campus: "near" },
-    { key: "east", name: "East of Campus", campus: "near" },
-    { key: "south", name: "South of Campus", campus: "near" }
+    { key: "on-campus", name: "On Campus", campus: "on", icon: "🎓" },
+    { key: "north", name: "North of Campus", campus: "near", icon: "⬆️" },
+    { key: "west", name: "West of Campus", campus: "near", icon: "⬅️" },
+    { key: "east", name: "East of Campus", campus: "near", icon: "➡️" },
+    { key: "south", name: "South of Campus", campus: "near", icon: "⬇️" }
   ],
   campusAreas: [
-    { key: "cougareat", name: "Cougareat" },
-    { key: "north-campus", name: "North Campus" },
-    { key: "south-campus", name: "South Campus" },
-    { key: "east-campus", name: "East Campus" },
-    { key: "west-campus", name: "West Campus" }
+    { key: "cougareat", name: "Cougareat", icon: "🍽️" },
+    { key: "north-campus", name: "North Campus", icon: "📚" },
+    { key: "south-campus", name: "South Campus", icon: "🔬" },
+    { key: "east-campus", name: "East Campus", icon: "🍦" },
+    { key: "west-campus", name: "West Campus", icon: "🏟️" }
   ],
 
   // ------------------------------------------------------------- the blocks

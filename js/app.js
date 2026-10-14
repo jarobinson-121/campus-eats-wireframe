@@ -16,6 +16,7 @@
   var testbar = document.getElementById("testbar");
   var utilNav = document.getElementById("util-nav");
   var homeLink = document.getElementById("top-home");
+  var searchState = { query: "", cuisine: null, campus: null, area: null };
 
   // ------------------------------------------------------------ fragments
   // always: show on every screen size (the columns only need them on phones).
@@ -36,8 +37,12 @@
     return node.children ? CE.plural(CE.countLeaves(node), "restaurant", "restaurants") : "";
   }
 
-  // ------------------------------------------------------------ pages
-  function viewHome() {
+  // --------------------------------------------------------- search helpers
+  function hasActiveSearch() {
+    return !!(searchState.query || searchState.cuisine || searchState.campus || searchState.area);
+  }
+
+  function renderDoors() {
     // Each option in a door is its own link, so people can jump straight to
     // a category; the door's heading still opens the view at the top.
     var doors = CE.views.map(function (v) {
@@ -55,13 +60,166 @@
         }).join("") + "</ul>" +
         "</li>";
     }).join("");
+    return '<ul class="doors">' + doors + "</ul>";
+  }
+
+  function renderSearchSection() {
+    var q = CE.esc(searchState.query);
+    var anyActive = hasActiveSearch();
+
+    var cuisineChips = D.cuisines.map(function (c) {
+      var on = c.key === searchState.cuisine;
+      return '<li><button type="button" class="filter-chip' + (on ? " is-active" : "") +
+        '" data-filter-type="cuisine" data-filter-key="' + CE.esc(c.key) +
+        '" data-kind="filter" data-label="Filter food type: ' + CE.esc(c.name) + '">' +
+        CE.esc(c.name) + "</button></li>";
+    }).join("");
+
+    var locChips = D.campus.map(function (cp) {
+      var on = cp.key === searchState.campus;
+      return '<li><button type="button" class="filter-chip' + (on ? " is-active" : "") +
+        '" data-filter-type="campus" data-filter-key="' + CE.esc(cp.key) +
+        '" data-kind="filter" data-label="Filter location: ' + CE.esc(cp.name) + '">' +
+        CE.esc(cp.name) + "</button></li>";
+    }).join("");
+
+    // Area chips only appear after the user picks On Campus or Near Campus,
+    // and only for areas that actually have restaurants in the dataset.
+    var areaChips = "";
+    if (searchState.campus === "on") {
+      areaChips = D.campusAreas.filter(function (a) {
+        return D.restaurants.some(function (r) { return r.campus === "on" && r.area === a.key; });
+      }).map(function (a) {
+        var on = a.key === searchState.area;
+        return '<li><button type="button" class="filter-chip filter-chip--area' + (on ? " is-active" : "") +
+          '" data-filter-type="area" data-filter-key="' + CE.esc(a.key) +
+          '" data-kind="filter" data-label="Filter area: ' + CE.esc(a.name) + '">' +
+          CE.esc(a.name) + "</button></li>";
+      }).join("");
+    } else if (searchState.campus === "near") {
+      areaChips = D.locations.filter(function (l) {
+        return l.campus === "near" && D.restaurants.some(function (r) { return r.campus === "near" && r.area === l.key; });
+      }).map(function (l) {
+        var on = l.key === searchState.area;
+        return '<li><button type="button" class="filter-chip filter-chip--area' + (on ? " is-active" : "") +
+          '" data-filter-type="area" data-filter-key="' + CE.esc(l.key) +
+          '" data-kind="filter" data-label="Filter area: ' + CE.esc(l.name) + '">' +
+          CE.esc(l.name) + "</button></li>";
+      }).join("");
+    }
+
+    return '<section class="search-section">' +
+      '<form class="searchbar" role="search" id="search-form" novalidate>' +
+        '<label class="vh" for="search-input">Search restaurants by name, food type, or location</label>' +
+        '<div class="searchbar__wrap">' +
+          '<input type="search" id="search-input" class="searchbar__input"' +
+            ' placeholder="Search by food, restaurant, or location\u2026"' +
+            ' value="' + q + '" autocomplete="off" spellcheck="false">' +
+          (anyActive
+            ? '<button type="button" id="search-clear" class="searchbar__clear"' +
+              ' data-kind="search" data-label="Clear search and filters">Clear</button>'
+            : "") +
+        "</div>" +
+      "</form>" +
+      '<div class="filter-rows">' +
+        '<nav aria-label="Filter by food type"><ul class="filter-chips">' + cuisineChips + "</ul></nav>" +
+        '<nav aria-label="Filter by location"><ul class="filter-chips">' + locChips + areaChips + "</ul></nav>" +
+      "</div>" +
+    "</section>";
+  }
+
+  function renderSearchCard(r) {
+    var cuisines = CE.cuisineNames(r);
+    var info = CE.details(r.id);
+    var trails = CE.trailsTo(r.id);
+    var href = trails.length ? CE.hrefFor(trails[0], trails[0].length - 1) : "#/";
+    var hours = info.hours && info.hours.length ? info.hours[0] : "Hours not listed yet";
+    return '<li><a class="rcard" href="' + href + '" data-kind="tile" data-label="' + CE.esc(r.name) + ' (search result)">' +
+      '<span class="rcard__go" aria-hidden="true">\u2192</span>' +
+      '<span class="rcard__name">' + CE.esc(r.name) + "</span>" +
+      '<span class="rcard__meta">' + CE.esc(cuisines.length ? cuisines.join(", ") : "Something different") + "</span>" +
+      '<span class="rcard__loc">' + CE.esc(CE.locationName(r)) + "</span>" +
+      '<span class="rcard__hours">' + CE.esc(hours) + "</span>" +
+    "</a></li>";
+  }
+
+  function renderSearchResults() {
+    var results = CE.search.run(searchState.query, searchState);
+    if (!results.length) {
+      return '<p class="search-empty" role="status">' +
+        '<strong>No restaurants matched.</strong> Try different keywords or clear a filter.' +
+      "</p>";
+    }
+    return '<p class="lede" role="status" aria-live="polite">' +
+      CE.esc(CE.plural(results.length, "restaurant", "restaurants")) + " found</p>" +
+      '<ul class="rcards">' + results.map(renderSearchCard).join("") + "</ul>";
+  }
+
+  function attachSearchListeners() {
+    var form = document.getElementById("search-form");
+    var input = document.getElementById("search-input");
+    if (!form || !input) return;
+
+    var timer;
+    input.addEventListener("input", function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var q = input.value.trim();
+        if (q === searchState.query) return;
+        searchState.query = q;
+        var pos = input.selectionStart;
+        viewHome();
+        var next = document.getElementById("search-input");
+        if (next) { next.focus(); try { next.setSelectionRange(pos, pos); } catch (e) {} }
+      }, 220);
+    });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      clearTimeout(timer);
+      searchState.query = input.value.trim();
+      viewHome();
+    });
+
+    var clearBtn = document.getElementById("search-clear");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", function () {
+        searchState = { query: "", cuisine: null, campus: null, area: null };
+        viewHome();
+        var next = document.getElementById("search-input");
+        if (next) next.focus();
+      });
+    }
+
+    document.querySelectorAll(".filter-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var type = chip.getAttribute("data-filter-type");
+        var key = chip.getAttribute("data-filter-key");
+        if (searchState[type] === key) {
+          searchState[type] = null;
+          if (type === "campus") searchState.area = null;
+        } else {
+          searchState[type] = key;
+          if (type === "campus") searchState.area = null;
+        }
+        viewHome();
+      });
+    });
+  }
+
+  // ------------------------------------------------------------ pages
+  function viewHome() {
+    // Hide search during an active test task to keep tree-test paths clean.
+    var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
     app.innerHTML =
       '<section class="hero">' +
-        '<p class="hero__eyebrow">BYU · Provo</p>' +
+        '<p class="hero__eyebrow">BYU \u00b7 Provo</p>' +
         "<h1 class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></h1>" +
         '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
       "</section>" +
-      '<ul class="doors">' + doors + "</ul>";
+      (inTestTask ? "" : renderSearchSection()) +
+      (!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors());
+    if (!inTestTask) attachSearchListeners();
   }
 
   // Shared view-transition names pair content on one page with its

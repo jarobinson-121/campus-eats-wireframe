@@ -29,7 +29,7 @@
       devmenu.querySelector("summary").focus();
     }
   });
-  var searchState = { query: "", cuisine: null, campus: null, area: null };
+  var searchState = { query: "" };
 
   // ------------------------------------------------------------ fragments
   // always: show on every screen size (the columns only need them on phones).
@@ -52,7 +52,7 @@
 
   // --------------------------------------------------------- search helpers
   function hasActiveSearch() {
-    return !!(searchState.query || searchState.cuisine || searchState.campus || searchState.area);
+    return !!searchState.query;
   }
 
   function renderDoors() {
@@ -79,68 +79,23 @@
     var q = CE.esc(searchState.query);
     var anyActive = hasActiveSearch();
 
-    var cuisineChips = D.cuisines.map(function (c) {
-      var on = c.key === searchState.cuisine;
-      return '<li><button type="button" class="filter-chip' + (on ? " is-active" : "") +
-        '" data-filter-type="cuisine" data-filter-key="' + CE.esc(c.key) +
-        '" data-kind="filter" data-label="Filter food type: ' + CE.esc(c.name) + '">' +
-        CE.esc(c.name) + "</button></li>";
-    }).join("");
-
-    var locChips = D.campus.map(function (cp) {
-      var on = cp.key === searchState.campus;
-      return '<li><button type="button" class="filter-chip' + (on ? " is-active" : "") +
-        '" data-filter-type="campus" data-filter-key="' + CE.esc(cp.key) +
-        '" data-kind="filter" data-label="Filter location: ' + CE.esc(cp.name) + '">' +
-        CE.esc(cp.name) + "</button></li>";
-    }).join("");
-
-    // Area chips only appear after the user picks On Campus or Near Campus,
-    // and only for areas that actually have restaurants in the dataset.
-    var areaChips = "";
-    if (searchState.campus === "on") {
-      areaChips = D.campusAreas.filter(function (a) {
-        return D.restaurants.some(function (r) { return r.campus === "on" && r.area === a.key; });
-      }).map(function (a) {
-        var on = a.key === searchState.area;
-        return '<li><button type="button" class="filter-chip filter-chip--area' + (on ? " is-active" : "") +
-          '" data-filter-type="area" data-filter-key="' + CE.esc(a.key) +
-          '" data-kind="filter" data-label="Filter area: ' + CE.esc(a.name) + '">' +
-          CE.esc(a.name) + "</button></li>";
-      }).join("");
-    } else if (searchState.campus === "near") {
-      areaChips = D.locations.filter(function (l) {
-        return l.campus === "near" && D.restaurants.some(function (r) { return r.campus === "near" && r.area === l.key; });
-      }).map(function (l) {
-        var on = l.key === searchState.area;
-        return '<li><button type="button" class="filter-chip filter-chip--area' + (on ? " is-active" : "") +
-          '" data-filter-type="area" data-filter-key="' + CE.esc(l.key) +
-          '" data-kind="filter" data-label="Filter area: ' + CE.esc(l.name) + '">' +
-          CE.esc(l.name) + "</button></li>";
-      }).join("");
-    }
-
     return '<section class="search-section">' +
       '<form class="searchbar" role="search" id="search-form" novalidate>' +
         '<label class="vh" for="search-input">Search restaurants by name, food type, or location</label>' +
         '<div class="searchbar__wrap">' +
-          // The × sits inside the field and resets the text and filters. It's
+          // The × sits inside the field and clears the search. It's
           // always rendered so it can appear as soon as typing starts.
           '<div class="searchbar__field">' +
             '<input type="search" id="search-input" class="searchbar__input"' +
               ' placeholder="Search by food, restaurant, or location\u2026"' +
               ' value="' + q + '" autocomplete="off" spellcheck="false">' +
             '<button type="button" id="search-clear" class="searchbar__x"' + (anyActive ? "" : " hidden") +
-              ' aria-label="Clear search and filters" data-kind="search" data-label="Clear search and filters">' +
+              ' aria-label="Clear search" data-kind="search" data-label="Clear search">' +
               '<span aria-hidden="true">\u00d7</span></button>' +
           "</div>" +
           '<button type="submit" class="searchbar__btn" data-kind="search" data-label="Search button">Search</button>' +
         "</div>" +
       "</form>" +
-      '<div class="filter-rows">' +
-        '<nav aria-label="Filter by food type"><ul class="filter-chips">' + cuisineChips + "</ul></nav>" +
-        '<nav aria-label="Filter by location"><ul class="filter-chips">' + locChips + areaChips + "</ul></nav>" +
-      "</div>" +
     "</section>";
   }
 
@@ -160,10 +115,10 @@
   }
 
   function renderSearchResults() {
-    var results = CE.search.run(searchState.query, searchState);
+    var results = CE.search.run(searchState.query, { cuisine: null, campus: null, area: null });
     if (!results.length) {
       return '<p class="search-empty" role="status">' +
-        '<strong>No restaurants matched.</strong> Try different keywords or clear a filter.' +
+        '<strong>No restaurants matched.</strong> Try different keywords.' +
       "</p>";
     }
     return '<p class="lede" role="status" aria-live="polite">' +
@@ -180,7 +135,7 @@
     var clearBtn = document.getElementById("search-clear");
     input.addEventListener("input", function () {
       // Show or hide the × right away, not after the search re-renders.
-      if (clearBtn) clearBtn.hidden = !(input.value.trim() || searchState.cuisine || searchState.campus || searchState.area);
+      if (clearBtn) clearBtn.hidden = !input.value.trim();
       clearTimeout(timer);
       timer = setTimeout(function () {
         var q = input.value.trim();
@@ -203,27 +158,13 @@
     if (clearBtn) {
       clearBtn.addEventListener("click", function () {
         clearTimeout(timer);
-        searchState = { query: "", cuisine: null, campus: null, area: null };
+        searchState = { query: "" };
         viewHome();
         var next = document.getElementById("search-input");
         if (next) next.focus();
       });
     }
 
-    document.querySelectorAll(".filter-chip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        var type = chip.getAttribute("data-filter-type");
-        var key = chip.getAttribute("data-filter-key");
-        if (searchState[type] === key) {
-          searchState[type] = null;
-          if (type === "campus") searchState.area = null;
-        } else {
-          searchState[type] = key;
-          if (type === "campus") searchState.area = null;
-        }
-        viewHome();
-      });
-    });
   }
 
   // ------------------------------------------------------------ pages

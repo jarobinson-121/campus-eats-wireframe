@@ -232,7 +232,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 /* -------------------------------------------------------------- search */
 .search-section { margin: 0 0 32px; }
 
-.searchbar { margin: 0 0 14px; }
+.searchbar { margin: 0; }
 .searchbar__wrap { display: flex; gap: 8px; max-width: 600px; }
 .searchbar__field { position: relative; flex: 1; display: flex; }
 .searchbar__input {
@@ -288,26 +288,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .searchbar__x[hidden] { display: none; }
 .searchbar__x:hover { background: var(--main-soft); color: var(--ink); }
 
-.filter-rows { display: flex; flex-direction: column; gap: 8px; }
-.filter-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.filter-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform .12s var(--ease), background-color .12s var(--ease), border-color .12s var(--ease);
-}
-.filter-chip:hover { background: var(--main-soft); border-color: var(--main); transform: translateY(-1px); }
-.filter-chip.is-active { background: var(--main); border-color: var(--main); color: var(--main-ink); }
-.filter-chip.is-active:hover { filter: brightness(1.08); transform: translateY(-1px); }
-/* Area chips are slightly smaller to visually subordinate them */
-.filter-chip--area { font-size: 13px; padding: 4px 10px; }
 
 /* Location line shown on search-result cards (in addition to cuisine) */
 .rcard__loc { font-size: 13px; color: var(--muted); margin-top: 2px; }
@@ -678,8 +658,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .miller__col { flex: 1 1 auto; border-right: 0; }
 
   .searchbar__input { font-size: 16px; } /* prevent iOS zoom */
-  .filter-chip { font-size: 13px; padding: 5px 10px; }
-  .filter-chip--area { font-size: 12px; padding: 4px 8px; }
   .rcards { grid-template-columns: 1fr; }
   .rest__hero { flex-direction: column; align-items: flex-start; padding: 22px; }
   .rest__name { font-size: 30px; }

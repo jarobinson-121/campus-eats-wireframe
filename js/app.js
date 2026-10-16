@@ -115,6 +115,7 @@
           '<input type="search" id="search-input" class="searchbar__input"' +
             ' placeholder="Search by food, restaurant, or location\u2026"' +
             ' value="' + q + '" autocomplete="off" spellcheck="false">' +
+          '<button type="submit" class="searchbar__btn" data-kind="search" data-label="Search button">Search</button>' +
           (anyActive
             ? '<button type="button" id="search-clear" class="searchbar__clear"' +
               ' data-kind="search" data-label="Clear search and filters">Clear</button>'

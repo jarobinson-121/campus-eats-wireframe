@@ -13,12 +13,14 @@
   // 36% looks muddy for that hue) supplies every surface,
   // text, line and the main color as tints and shades, plus exactly one
   // contrasting accent, used sparingly (highlights, the place tag, notices).
+  // Accents are dark enough to pass as large text on the cards (3:1+) and
+  // to carry their ink color as a label (4.5:1+).
   var PALETTES = [
-    { key: "cougar",    name: "Cougar",     h: 216, s: 62, accent: "#f5b83d", accentInk: "#2e1f00" },
-    { key: "tangerine", name: "Tangerine",  h: 22,  s: 85, l: 39, accent: "#e9b949", accentInk: "#2e2100" },
-    { key: "matcha",    name: "Matcha",     h: 135, s: 38, accent: "#c8733a", accentInk: "#241003" },
-    { key: "grape",     name: "Grape Soda", h: 265, s: 60, accent: "#facc15", accentInk: "#2e2400" },
-    { key: "midnight",  name: "Midnight",   h: 222, s: 30, accent: "#22d3ee", accentInk: "#032b33", dark: true }
+    { key: "cougar",    name: "Cougar",     h: 216, s: 62, accent: "#c2410c", accentInk: "#ffffff" },
+    { key: "tangerine", name: "Tangerine",  h: 22,  s: 85, l: 39, accent: "#115e59", accentInk: "#ffffff" },
+    { key: "matcha",    name: "Matcha",     h: 135, s: 38, accent: "#9a3412", accentInk: "#ffffff" },
+    { key: "grape",     name: "Grape Soda", h: 265, s: 60, accent: "#c2255c", accentInk: "#ffffff" },
+    { key: "midnight",  name: "Midnight",   h: 222, s: 30, accent: "#fbbf24", accentInk: "#2a1d00", dark: true }
   ];
 
   function hsl(h, s, l) { return "hsl(" + h + " " + Math.round(s) + "% " + l + "%)"; }

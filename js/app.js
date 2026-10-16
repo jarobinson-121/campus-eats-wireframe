@@ -126,6 +126,29 @@
       '<ul class="rcards">' + results.map(renderSearchCard).join("") + "</ul>";
   }
 
+  // Search results live on home, so a search typed on a browse step goes
+  // back there; clearing the field on a browse step just refreshes the bar.
+  // pendingSearchFocus is the caret position to restore after the re-render.
+  var pendingSearchFocus = null;
+  function isHome() {
+    var h = window.location.hash;
+    return !h || h === "#" || h === "#/";
+  }
+  function showSearch(caret) {
+    pendingSearchFocus = caret;
+    if (isHome()) { viewHome(); focusSearch(); }
+    else if (searchState.query) window.location.hash = "#/";   // CE.render restores focus
+    else CE.render();
+  }
+  function focusSearch() {
+    var caret = pendingSearchFocus;
+    pendingSearchFocus = null;
+    var input = document.getElementById("search-input");
+    if (!input || caret === null) return;
+    input.focus({ preventScroll: true });
+    try { input.setSelectionRange(caret, caret); } catch (e) { /* not all inputs allow it */ }
+  }
+
   function attachSearchListeners() {
     var form = document.getElementById("search-form");
     var input = document.getElementById("search-input");
@@ -141,10 +164,7 @@
         var q = input.value.trim();
         if (q === searchState.query) return;
         searchState.query = q;
-        var pos = input.selectionStart;
-        viewHome();
-        var next = document.getElementById("search-input");
-        if (next) { next.focus(); try { next.setSelectionRange(pos, pos); } catch (e) {} }
+        showSearch(input.selectionStart);
       }, 220);
     });
 
@@ -152,34 +172,43 @@
       e.preventDefault();
       clearTimeout(timer);
       searchState.query = input.value.trim();
-      viewHome();
+      showSearch(null);
     });
 
     if (clearBtn) {
       clearBtn.addEventListener("click", function () {
         clearTimeout(timer);
         searchState = { query: "" };
-        viewHome();
-        var next = document.getElementById("search-input");
-        if (next) next.focus();
+        showSearch(0);
       });
     }
 
   }
 
   // ------------------------------------------------------------ pages
-  function viewHome() {
+  // Home and every browse step share one page: the headline and search stay
+  // at the top, and only the browse area underneath changes (the two cards,
+  // then tabs and columns, restaurant cards, a restaurant). Routes still
+  // change per step, so the back button, click log and test mode still work.
+  function onePage(browseHtml, isHome) {
     // Hide search during an active test task to keep tree-test paths clean.
     var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
+    // The headline is the page's h1 only on home; browse steps keep their own.
+    var tag = isHome ? "h1" : "p";
     app.innerHTML =
       '<section class="hero">' +
         '<p class="hero__eyebrow">BYU \u00b7 Provo</p>' +
-        "<h1 class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></h1>" +
+        "<" + tag + " class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></" + tag + ">" +
         '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
       "</section>" +
       (inTestTask ? "" : renderSearchSection()) +
-      (!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors());
+      '<div class="browse" id="browse" tabindex="-1">' + browseHtml + "</div>";
     if (!inTestTask) attachSearchListeners();
+  }
+
+  function viewHome() {
+    var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
+    onePage(!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors(), true);
   }
 
 
@@ -261,7 +290,7 @@
         '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
         "</a></li>";
     }).join("");
-    app.innerHTML =
+    onePage(
       viewTabs(r.view) +
       crumbs(trail, true) +
       '<div class="pagehead"><div>' +
@@ -269,18 +298,18 @@
         '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
       "</div></div>" +
       siblingChips(trail) +
-      '<ul class="rcards">' + cards + "</ul>";
+      '<ul class="rcards">' + cards + "</ul>");
   }
 
   function viewRestaurant(r) {
     var listTrail = r.trail.slice(0, -1);
-    app.innerHTML =
+    onePage(
       viewTabs(r.view) +
       crumbs(r.trail, true) +
       '<h1 class="vh">' + CE.esc(r.node.name) + "</h1>" +
       '<div class="restpage">' + detail(r) + "</div>" +
       '<p><a class="backlink" href="' + CE.hrefFor(listTrail, listTrail.length - 1) + '" data-kind="nav" data-label="Back to ' +
-        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>";
+        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>");
   }
 
   function detail(r) {
@@ -344,12 +373,12 @@
       cols.push(column(trail.slice(0, i + 1), deepest ? null : trail[i + 1].key, deepest));
     });
     cols.push('<div class="miller__ghost" aria-hidden="true">← Pick one to keep going</div>');
-    app.innerHTML =
+    onePage(
       '<h1 class="vh">' + CE.esc(r.view.name) + "</h1>" +
       viewTabs(r.view) +
       '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" +
       crumbs(trail) +
-      '<div class="miller" id="miller">' + cols.join("") + "</div>";
+      '<div class="miller" id="miller">' + cols.join("") + "</div>");
     var miller = document.getElementById("miller");
     miller.scrollLeft = miller.scrollWidth;
   }
@@ -529,22 +558,27 @@
     var name = title && segments.length ? title.textContent : D.title;
     document.title = (name === D.title ? "" : name + " — ") + D.title;
 
-    // Moving between columns of the same view keeps the screen still;
-    // anything else (including restaurant lists and pages) is a new screen
-    // and starts at the top.
     var inColumns = resolved && !resolved.node.block && !listsRestaurants(resolved.node);
-    var viewKey = resolved ? (inColumns ? resolved.view.key : hash) : null;
-    if (!viewKey || viewKey !== lastViewKey) {
-      window.scrollTo(0, 0);
-      app.focus({ preventScroll: true });
-    }
-    lastViewKey = viewKey;
-
     var kind = segments.length === 0 ? "home" : !resolved ? "other" :
       resolved.node.block ? "restaurant" : inColumns ? "columns" : "results";
+
+    // Within the one-page flow the screen doesn't jump to the top: it only
+    // scrolls if the browse area has gone above the fold, and just enough to
+    // bring it back. Instrument pages are separate and start at the top.
+    var browse = document.getElementById("browse");
+    if (lastRoute && lastRoute.hash !== hash) {
+      if (browse && ONE_PAGE[kind] && ONE_PAGE[lastRoute.kind]) {
+        var top = browse.getBoundingClientRect().top;
+        if (top < 0) window.scrollBy(0, top - 16);
+        browse.focus({ preventScroll: true });
+      } else {
+        window.scrollTo(0, 0);
+        app.focus({ preventScroll: true });
+      }
+    }
     entrance(hash, segments.length, kind);
+    if (pendingSearchFocus !== null) focusSearch();
   };
-  var lastViewKey = null;
 
   // Only what's new animates, sliding a little from the side you're heading
   // toward: deeper comes in from the right, back from the left, and a
@@ -553,6 +587,7 @@
   // still, so there's always something fixed to look at.
   var lastRoute = null;
   var BROWSE = { columns: 1, results: 1, restaurant: 1 };
+  var ONE_PAGE = { home: 1, columns: 1, results: 1, restaurant: 1 };
   function entrance(hash, depth, kind) {
     var prev = lastRoute;
     lastRoute = { hash: hash, depth: depth, kind: kind };
@@ -567,10 +602,12 @@
       // Switching pills: the pills stay, the heading and cards change.
       els = app.querySelectorAll(".pagehead, .rcards");
     } else {
-      // A new kind of page: everything except the tabs and breadcrumbs,
-      // which stay put when moving between browse pages.
+      // A new kind of page: the browse area (never the headline or search
+      // above it), except the tabs and breadcrumbs, which stay put when
+      // moving between browse steps.
       var keep = BROWSE[kind] && BROWSE[prev.kind];
-      els = Array.prototype.filter.call(app.children, function (el) {
+      var area = document.getElementById("browse") || app;
+      els = Array.prototype.filter.call(area.children, function (el) {
         return !(keep && el.matches(".tabs, .crumbs"));
       });
     }

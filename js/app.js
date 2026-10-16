@@ -61,15 +61,14 @@
     var doors = CE.views.map(function (v) {
       return '<li class="door">' +
         '<a class="door__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
-          '<span class="door__text"><span class="door__name"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span>" +
+          '<span class="door__text"><span class="door__name">' + CE.esc(v.name) + "</span>" +
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
         '<ul class="door__opts">' + v.children.map(function (c) {
-          var id = pathId([v], c);
           return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
             CE.esc(c.name) + ' (home shortcut)">' +
-            '<span class="opt__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
+            '<span class="opt__label">' + CE.esc(c.name) + "</span></a></li>";
         }).join("") + "</ul>" +
         "</li>";
     }).join("");
@@ -242,23 +241,6 @@
     if (!inTestTask) attachSearchListeners();
   }
 
-  // Shared view-transition names pair content on one page with its
-  // counterpart on the next, so it glides between them. Only labels
-  // travel (they keep their shape, so they scale cleanly);
-  // pills, rows and panels just fade in place.
-  //   glide: same shape at both ends, scales smoothly
-  //   swap:  shape changes (a wrapped title becomes one line), crossfades
-  //   pill:  a highlight (active tab or pill, selected row) that slides
-  //          underneath the labels
-  function vt(name, kind) {
-    return ' style="view-transition-name: vt-' + name + "; view-transition-class: " + (kind || "glide") + '"';
-  }
-
-  // A category's id is its path (food-asian-near), so the same category
-  // pairs up wherever it appears: home chip, column row or sibling pill.
-  function pathId(trail, child) {
-    return trail.map(function (n) { return n.key; }).concat([child.key]).join("-");
-  }
 
   // Browse pages are Finder-style columns: one column per level along the
   // route, the chosen item in each column marked, and the restaurant's
@@ -267,9 +249,9 @@
   function viewTabs(current) {
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
-        (v === current ? ' aria-current="true"' + vt("tab-active", "pill") : "") +
+        (v === current ? ' aria-current="true"' : "") +
         ' data-kind="tab" data-label="' + CE.esc(v.name) + ' (tab)">' +
-        '<span class="tab__label"' + vt("label-view-" + v.key, "swap") + ">" + CE.esc(v.name) + "</span></a>";
+        '<span class="tab__label">' + CE.esc(v.name) + "</span></a>";
     }).join("") + "</nav>";
   }
 
@@ -281,11 +263,10 @@
       (trail.length > 2 ? trail[trail.length - 2].name + " · " : "") + node.name;
     var items = node.children.map(function (c) {
       var selected = c.key === selectedKey;
-      var id = pathId(trail, c);
       return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
-        (selected ? ' aria-current="true"' + vt("sel-" + trail.length, "pill") : "") +
+        (selected ? ' aria-current="true"' : "") +
         ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        '<span class="colitem__name"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span>" +
+        '<span class="colitem__name">' + CE.esc(c.name) + "</span>" +
         (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
         "</a></li>";
     }).join("");
@@ -314,11 +295,10 @@
     return '<nav aria-label="Other choices under ' + CE.esc(parent.name) + '"><ul class="chips chips--siblings">' +
       parent.children.map(function (c) {
         var on = c === current;
-        var id = pathId(parentTrail, c);
         return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
-          (on ? ' aria-current="true"' + vt("chip-active", "pill") : "") +
+          (on ? ' aria-current="true"' : "") +
           ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
-          '<span class="chip__label"' + vt("label-" + id) + ">" + CE.esc(c.name) + "</span></a></li>";
+          '<span class="chip__label">' + CE.esc(c.name) + "</span></a></li>";
       }).join("") + "</ul></nav>";
   }
 
@@ -334,7 +314,7 @@
       var info = CE.details(rest.id);
       return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
         '<span class="rcard__go" aria-hidden="true">→</span>' +
-        '<span class="rcard__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</span>" +
+        '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
         '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
           (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
         '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
@@ -377,7 +357,7 @@
       '<div class="rest__hero" role="status">' +
         "<div>" +
           '<p class="rest__label">You selected</p>' +
-          '<p class="rest__name"' + vt("label-r-" + rest.id) + ">" + CE.esc(rest.name) + "</p>" +
+          '<p class="rest__name">' + CE.esc(rest.name) + "</p>" +
           '<ul class="tags">' +
             cuisines.map(function (n) { return '<li class="tag">' + CE.esc(n) + "</li>"; }).join("") +
             '<li class="tag tag--place">' + CE.esc(CE.locationName(rest)) + "</li>" +
@@ -618,49 +598,48 @@
       app.focus({ preventScroll: true });
     }
     lastViewKey = viewKey;
+
+    var kind = segments.length === 0 ? "home" : !resolved ? "other" :
+      resolved.node.block ? "restaurant" : inColumns ? "columns" : "results";
+    entrance(hash, segments.length, kind);
   };
   var lastViewKey = null;
 
-  // Every in-app navigation (clicks, breadcrumbs, back/forward) animates the
-  // same way: content that appears on both pages (labels, the active
-  // tab or pill, the selected row) glides from its old spot to its new one,
-  // and everything else fades. The old page is captured before render runs,
-  // so the router, click log and test mode are untouched. Browsers without
-  // view transitions, or with reduced motion on, just render.
-  var calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-  var stagger = document.createElement("style");
-  document.head.appendChild(stagger);
-  var running = null;
-
-  // Items in a list land one after another (a cascade, not a jump). The
-  // delays have to live in a stylesheet: they target pseudo-elements.
-  function cascade() {
-    var rules = [];
-    app.querySelectorAll(".collist, .chips--siblings, .door__opts").forEach(function (list) {
-      Array.prototype.forEach.call(list.children, function (li, i) {
-        li.querySelectorAll("[style*=view-transition-name]").forEach(function (el) {
-          rules.push("::view-transition-group(" + el.style.viewTransitionName + ") { animation-delay: " + (i * 14) + "ms; }");
-        });
+  // Only what's new animates, sliding a little from the side you're heading
+  // toward: deeper comes in from the right, back from the left, and a
+  // sideways switch (another tab, pill or row) just fades. Anything that
+  // didn't change (header, tabs, columns you've already picked from) stays
+  // still, so there's always something fixed to look at.
+  var lastRoute = null;
+  var BROWSE = { columns: 1, results: 1, restaurant: 1 };
+  function entrance(hash, depth, kind) {
+    var prev = lastRoute;
+    lastRoute = { hash: hash, depth: depth, kind: kind };
+    if (!prev || prev.hash === hash) return;
+    var dir = depth > prev.depth ? "fwd" : depth < prev.depth ? "back" : "fade";
+    var els;
+    if (kind === "columns" && prev.kind === "columns") {
+      // Within the columns: the newest column (and the empty hint) comes in;
+      // backing out only redraws the hint.
+      els = app.querySelectorAll(dir === "back" ? ".miller__ghost" : ".miller__col.is-current, .miller__ghost");
+    } else if (kind === "results" && prev.kind === "results") {
+      // Switching pills: the pills stay, the heading and cards change.
+      els = app.querySelectorAll(".pagehead, .rcards");
+    } else {
+      // A new kind of page: everything except the tabs and breadcrumbs,
+      // which stay put when moving between browse pages.
+      var keep = BROWSE[kind] && BROWSE[prev.kind];
+      els = Array.prototype.filter.call(app.children, function (el) {
+        return !(keep && el.matches(".tabs, .crumbs"));
       });
+    }
+    Array.prototype.forEach.call(els, function (el) {
+      el.classList.add("enter-" + dir);
+      el.addEventListener("animationend", function () { el.classList.remove("enter-" + dir); }, { once: true });
     });
-    stagger.textContent = rules.join("\n");
   }
 
-  window.addEventListener("hashchange", function () {
-    if (!document.startViewTransition || calm.matches) { CE.render(); return; }
-    var root = document.documentElement;
-    root.classList.add("vt");
-    var t = document.startViewTransition(function () {
-      CE.render();
-      cascade();
-    });
-    running = t;
-    t.finished.finally(function () {
-      if (running !== t) return;   // a newer navigation took over
-      root.classList.remove("vt");
-      stagger.textContent = "";
-    });
-  });
+  window.addEventListener("hashchange", CE.render);
 
   setInterval(CE.test.tick, 1000);
   CE.render();

@@ -379,7 +379,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   transition: background-color .15s var(--ease);
 }
 .colitem:hover { background: var(--main-soft); text-decoration: none; }
-.colitem__name { display: block; width: fit-content; font-weight: 500; }   /* hug the text: it's a shared-transition target */
+.colitem__name { display: block; width: fit-content; font-weight: 500; }
 .colitem__sub  { display: block; font-size: 12px; color: var(--muted); }
 .colitem__go   { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 .colitem.is-selected { background: var(--main); color: var(--main-ink); }
@@ -647,6 +647,16 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 }
 .palette__dots i + i { margin-left: -6px; }
 
+/* --------------------------------------------------------- page entrance */
+/* Set by app.js on only the parts of a page that are new. A short, small
+   slide in the direction of travel; turned off by reduced motion above. */
+.enter-fwd  { animation: enter-fwd  .22s cubic-bezier(.2, .8, .2, 1) both; }
+.enter-back { animation: enter-back .22s cubic-bezier(.2, .8, .2, 1) both; }
+.enter-fade { animation: enter-fade .18s ease-out both; }
+@keyframes enter-fwd  { from { opacity: 0; transform: translateX(12px); } }
+@keyframes enter-back { from { opacity: 0; transform: translateX(-12px); } }
+@keyframes enter-fade { from { opacity: 0; } }
+
 /* ---------------------------------------------------------------- phones */
 @media (max-width: 600px) {
   .frame { padding: 0 16px 96px; }
@@ -677,75 +687,3 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .card__scenario { font-size: 20px; }
   .palette { right: 16px; bottom: 16px; }
 }
-
-/* ------------------------------------------------ page-to-page morph */
-/* Scoped to .vt, set while any navigation animates (app.js). Only content
-   travels: labels glide to wherever the same thing appears on the
-   next page (home chip → column row → sibling pill; restaurant card → its
-   page), along with the active tab, active pill and selected row. Containers
-   (cards, rows, panels) simply fade in place, and the header stays put. */
-
-/* The header and palette button look identical on both pages: hold them
-   still instead of crossfading them with the rest of the page. */
-.topbar  { view-transition-name: topbar; }
-.palette { view-transition-name: palette; }
-html.vt::view-transition-group(topbar),
-html.vt::view-transition-group(palette),
-html.vt::view-transition-new(topbar),
-html.vt::view-transition-new(palette) { animation: none; }
-html.vt::view-transition-old(topbar),
-html.vt::view-transition-old(palette) { display: none; }
-html.vt::view-transition-group(topbar),
-html.vt::view-transition-group(palette) { z-index: 3; }
-
-/* Everything that travels: one smooth ease-out, no overshoot. */
-html.vt::view-transition-group(*) {
-  animation-duration: .48s;
-  animation-timing-function: cubic-bezier(.22, 1, .36, 1);
-}
-
-/* Glide pairs keep their shape, so let both snapshots fill the box and
-   scale with it; old and new overlap exactly, so the crossfade is invisible. */
-html.vt::view-transition-old(*.glide),
-html.vt::view-transition-new(*.glide) {
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-}
-
-/* Swap pairs change shape (a wrapped title becomes a one-line tab label):
-   hand off early and don't scale, so the text never stretches or doubles. */
-html.vt::view-transition-old(*.swap),
-html.vt::view-transition-new(*.swap) {
-  height: 100%;
-  width: auto;
-  object-fit: none;
-  object-position: left center;
-}
-html.vt::view-transition-old(*.swap) { animation: vt-fade-out .14s ease-out both; }
-html.vt::view-transition-new(*.swap) { animation: vt-fade-in .22s .05s ease-out both; }
-
-/* Highlights (active tab, active pill, selected row) slide underneath the
-   content that travels with them, never over it. They're plain shapes, so
-   they stretch to their new size cleanly. */
-html.vt::view-transition-group(*.pill) { z-index: 1; }
-html.vt::view-transition-group(*.glide),
-html.vt::view-transition-group(*.swap) { z-index: 2; }
-html.vt::view-transition-old(*.pill),
-html.vt::view-transition-new(*.pill) { width: 100%; height: 100%; object-fit: fill; }
-html.vt::view-transition-new(*.pill):only-child { animation: vt-fade-in .2s .04s ease-out both; }
-html.vt::view-transition-old(*.pill):only-child { animation: vt-fade-out .12s ease-out both; }
-
-/* Content with no partner (the other card's chips) fades out fast. */
-html.vt::view-transition-old(*.glide):only-child,
-html.vt::view-transition-old(*.swap):only-child { animation: vt-fade-out .14s ease-out both; }
-html.vt::view-transition-new(*.glide):only-child,
-html.vt::view-transition-new(*.swap):only-child { animation: vt-fade-in .25s .1s ease-out both; }
-
-/* The page itself: old out quickly, new in behind the travelling content.
-   No slide, so nothing in the new page drifts out of line with it. */
-html.vt::view-transition-old(root) { animation: vt-fade-out .12s ease-out both; }
-html.vt::view-transition-new(root) { animation: vt-fade-in .3s .1s ease-out both; }
-
-@keyframes vt-fade-out { to { opacity: 0; } }
-@keyframes vt-fade-in { from { opacity: 0; } }

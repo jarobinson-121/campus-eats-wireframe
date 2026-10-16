@@ -58,11 +58,11 @@
   var root = document.documentElement;
   var current = byKey(saved());
 
-  // Dev options can hide the switcher. Applied here, in <head>, so a hidden
-  // switcher never flashes on load. Shown unless someone turned it off.
+  // Dev options can show the switcher. Applied here, in <head>, so it never
+  // flashes on load. Hidden unless someone turned it on.
   var SHOWN_KEY = "ce.palette.shown.v1";
-  var shown = true;
-  try { shown = window.localStorage.getItem(SHOWN_KEY) !== "0"; } catch (e) { /* storage blocked: keep it shown */ }
+  var shown = false;
+  try { shown = window.localStorage.getItem(SHOWN_KEY) === "1"; } catch (e) { /* storage blocked: keep it hidden */ }
   root.classList.toggle("palette-off", !shown);
 
   function apply(p) {

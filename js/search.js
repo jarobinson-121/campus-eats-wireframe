@@ -22,7 +22,9 @@
     "bbq":              ["barbecue", "barbeque"],
     "barbecue":         ["bbq", "barbeque"],
     "barbeque":         ["bbq", "barbecue"],
-    "sushi":            ["blue sushi", "japanese", "roll", "rolls"],
+    // Not "roll"/"rolls": those also match bakery sweet rolls. Blue Sushi's
+    // own keywords already cover "rolls".
+    "sushi":            ["blue sushi", "japanese"],
     "japanese":         ["sushi", "asian"],
     "korean":           ["asian", "cupbop", "korean bbq"],
     "korean bbq":       ["asian", "cupbop"],
@@ -123,6 +125,15 @@
       .trim();
   }
 
+  // An address can name a neighbor ("next to Blue Sushi"); drop other
+  // restaurants' names so a search for them doesn't match this one.
+  function withoutOtherNames(text, r) {
+    D.restaurants.forEach(function (o) {
+      if (o.id !== r.id) text = (" " + text + " ").split(" " + norm(o.name) + " ").join(" ").trim();
+    });
+    return text;
+  }
+
   // Build the full searchable corpus for one restaurant.
   function corpus(r) {
     var parts = [norm(r.name)];
@@ -134,7 +145,7 @@
     parts.push(r.campus === "on" ? "on campus" : "near campus");
     var det = CE.details(r.id);
     if (det.menu) det.menu.forEach(function (m) { parts.push(norm(m)); });
-    if (det.where) parts.push(norm(det.where));
+    if (det.where) parts.push(withoutOtherNames(norm(det.where), r));
     var kw = KEYWORDS[r.id];
     if (kw) kw.forEach(function (k) { parts.push(norm(k)); });
     return parts.join(" ");

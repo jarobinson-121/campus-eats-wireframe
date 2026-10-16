@@ -58,6 +58,13 @@
   var root = document.documentElement;
   var current = byKey(saved());
 
+  // Dev options can hide the switcher. Applied here, in <head>, so a hidden
+  // switcher never flashes on load. Shown unless someone turned it off.
+  var SHOWN_KEY = "ce.palette.shown.v1";
+  var shown = true;
+  try { shown = window.localStorage.getItem(SHOWN_KEY) !== "0"; } catch (e) { /* storage blocked: keep it shown */ }
+  root.classList.toggle("palette-off", !shown);
+
   function apply(p) {
     current = p;
     Object.keys(p.vars).forEach(function (v) { root.style.setProperty("--" + v, p.vars[v]); });
@@ -115,6 +122,30 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && !panel.hidden) { open(false); toggle.focus(); }
     });
+
+    // On/off switch in the Dev options menu (index.html). Clicking it leaves
+    // the menu open so the change is visible right away.
+    var menu = document.querySelector("#devmenu .devmenu__panel");
+    if (!menu) return;
+    var sw = document.createElement("button");
+    sw.type = "button";
+    sw.className = "devmenu__switch";
+    sw.setAttribute("role", "switch");
+    sw.setAttribute("data-nolog", "");
+    sw.innerHTML = 'Palette switcher<span class="devmenu__state" aria-hidden="true"></span>';
+    function show(yes) {
+      shown = yes;
+      root.classList.toggle("palette-off", !yes);
+      sw.setAttribute("aria-checked", String(yes));
+      sw.querySelector(".devmenu__state").textContent = yes ? "On" : "Off";
+      if (!yes) open(false);
+    }
+    show(shown);
+    sw.addEventListener("click", function () {
+      show(!shown);
+      try { window.localStorage.setItem(SHOWN_KEY, shown ? "1" : "0"); } catch (e) { /* lasts this page only */ }
+    });
+    menu.appendChild(sw);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build);

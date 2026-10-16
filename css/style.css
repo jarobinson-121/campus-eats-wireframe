@@ -119,6 +119,35 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 }
 .devmenu__panel a { border-radius: 8px; padding: 8px 10px; white-space: nowrap; }
 .devmenu__panel a:hover { background: var(--bg); }
+/* A setting, not a link: set apart by a divider, with an On/Off pill. */
+.devmenu__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 4px;
+  padding: 10px 10px 6px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.devmenu__switch:hover { color: var(--ink); }
+.devmenu__state {
+  min-width: 36px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+.devmenu__switch[aria-checked="true"] .devmenu__state { background: var(--main); color: var(--main-ink); }
 
 .is-inert { pointer-events: none; cursor: default; }
 
@@ -566,6 +595,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 /* ------------------------------------------------------ palette switcher */
 .palette { position: fixed; right: 20px; bottom: 20px; z-index: 10; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .is-testing .palette { display: none; }
+.palette-off .palette { display: none; }   /* turned off in Dev options */
 .palette__toggle {
   display: grid;
   place-items: center;

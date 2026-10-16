@@ -67,13 +67,14 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 
 .topbar {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 24px;
+  flex-wrap: wrap;           /* the nav drops below only when it truly won't fit */
+  gap: 8px 16px;
   align-items: center;
   justify-content: space-between;
   padding: 20px 0;
 }
 .topbar__home {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -83,7 +84,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   color: var(--ink);
 }
 .topbar__home:hover { text-decoration: none; }
-.topbar__util { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; }
+.topbar__util { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; font-size: 13px; white-space: nowrap; }
 .topbar__util[hidden] { display: none; }
 /* Every nav item is underlined, including the Dev options toggle. */
 .topbar__util a, .devmenu > summary {
@@ -639,7 +640,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 @media (max-width: 600px) {
   .frame { padding: 0 16px 96px; }
   .topbar__home { font-size: 20px; }
-  .topbar__util { width: 100%; }
+  .topbar__util a, .devmenu > summary { padding: 6px 8px; }
   h1 { font-size: 28px; }
   .hero { padding: 20px 0 28px; }
   .hero__lede { font-size: 17px; }

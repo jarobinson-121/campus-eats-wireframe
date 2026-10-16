@@ -83,10 +83,41 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   color: var(--ink);
 }
 .topbar__home:hover { text-decoration: none; }
-.topbar__util { display: flex; flex-wrap: wrap; gap: 4px; font-size: 13px; }
+.topbar__util { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 13px; }
 .topbar__util[hidden] { display: none; }
-.topbar__util a { color: var(--muted); padding: 6px 10px; border-radius: 999px; }
-.topbar__util a:hover { background: var(--surface); color: var(--ink); text-decoration: none; }
+/* Every nav item is underlined, including the Dev options toggle. */
+.topbar__util a, .devmenu > summary {
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.topbar__util a:hover, .devmenu > summary:hover { background: var(--surface); color: var(--ink); }
+
+/* Dev options: the prototype's instruments, tucked into one dropdown. */
+.devmenu { position: relative; }
+.devmenu > summary { list-style: none; cursor: pointer; user-select: none; }
+.devmenu > summary::-webkit-details-marker { display: none; }
+.devmenu > summary::after { content: "▾"; display: inline-block; margin-left: 4px; text-decoration: none; transition: transform .15s var(--ease); }
+.devmenu[open] > summary { background: var(--surface); color: var(--ink); }
+.devmenu[open] > summary::after { transform: rotate(180deg); }
+.devmenu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lift);
+}
+.devmenu__panel a { border-radius: 8px; padding: 8px 10px; white-space: nowrap; }
+.devmenu__panel a:hover { background: var(--bg); }
 
 .is-inert { pointer-events: none; cursor: default; }
 

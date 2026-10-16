@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
-  <link rel="stylesheet" href="css/style.css?v=30">
-  <script src="js/palette.js?v=30"></script>
+  <link rel="stylesheet" href="css/style.css?v=31">
+  <script src="js/palette.js?v=31"></script>
 </head>
 <body>
   <div class="frame">
@@ -20,9 +20,14 @@
       <a class="topbar__home" id="top-home" href="#/" data-kind="nav" data-label="Home (title bar)">Campus Eats</a>
       <nav class="topbar__util" id="util-nav" aria-label="Prototype instruments">
         <a href="#/map" data-kind="nav" data-label="Site map">Site map</a>
-        <a href="#/log" data-kind="nav" data-label="Click log">Click log</a>
-        <a href="#/test" data-kind="nav" data-label="Test mode">Test mode</a>
-        <a href="#/results" data-kind="nav" data-label="Test results">Results</a>
+        <details class="devmenu" id="devmenu">
+          <summary>Dev options</summary>
+          <div class="devmenu__panel">
+            <a href="#/log" data-kind="nav" data-label="Click log">Click log</a>
+            <a href="#/test" data-kind="nav" data-label="Test mode">Test mode</a>
+            <a href="#/results" data-kind="nav" data-label="Test results">Results</a>
+          </div>
+        </details>
       </nav>
     </header>
 
@@ -36,12 +41,12 @@
 
   </div>
 
-  <script src="js/data.js?v=30"></script>
-  <script src="js/core.js?v=30"></script>
-  <script src="js/sync.js?v=30"></script>
-  <script src="js/logger.js?v=30"></script>
-  <script src="js/testmode.js?v=30"></script>
-  <script src="js/search.js?v=30"></script>
-  <script src="js/app.js?v=30"></script>
+  <script src="js/data.js?v=31"></script>
+  <script src="js/core.js?v=31"></script>
+  <script src="js/sync.js?v=31"></script>
+  <script src="js/logger.js?v=31"></script>
+  <script src="js/testmode.js?v=31"></script>
+  <script src="js/search.js?v=31"></script>
+  <script src="js/app.js?v=31"></script>
 </body>
 </html>

@@ -16,6 +16,19 @@
   var testbar = document.getElementById("testbar");
   var utilNav = document.getElementById("util-nav");
   var homeLink = document.getElementById("top-home");
+
+  // Dev options dropdown: close it after a pick, on a click outside, or Esc.
+  var devmenu = document.getElementById("devmenu");
+  document.addEventListener("click", function (e) {
+    if (!devmenu.open) return;
+    if (!devmenu.contains(e.target) || e.target.closest(".devmenu__panel a")) devmenu.open = false;
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && devmenu.open) {
+      devmenu.open = false;
+      devmenu.querySelector("summary").focus();
+    }
+  });
   var searchState = { query: "", cuisine: null, campus: null, area: null };
 
   // ------------------------------------------------------------ fragments

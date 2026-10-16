@@ -125,14 +125,17 @@
       '<form class="searchbar" role="search" id="search-form" novalidate>' +
         '<label class="vh" for="search-input">Search restaurants by name, food type, or location</label>' +
         '<div class="searchbar__wrap">' +
-          '<input type="search" id="search-input" class="searchbar__input"' +
-            ' placeholder="Search by food, restaurant, or location\u2026"' +
-            ' value="' + q + '" autocomplete="off" spellcheck="false">' +
+          // The × sits inside the field and resets the text and filters. It's
+          // always rendered so it can appear as soon as typing starts.
+          '<div class="searchbar__field">' +
+            '<input type="search" id="search-input" class="searchbar__input"' +
+              ' placeholder="Search by food, restaurant, or location\u2026"' +
+              ' value="' + q + '" autocomplete="off" spellcheck="false">' +
+            '<button type="button" id="search-clear" class="searchbar__x"' + (anyActive ? "" : " hidden") +
+              ' aria-label="Clear search and filters" data-kind="search" data-label="Clear search and filters">' +
+              '<span aria-hidden="true">\u00d7</span></button>' +
+          "</div>" +
           '<button type="submit" class="searchbar__btn" data-kind="search" data-label="Search button">Search</button>' +
-          (anyActive
-            ? '<button type="button" id="search-clear" class="searchbar__clear"' +
-              ' data-kind="search" data-label="Clear search and filters">Clear</button>'
-            : "") +
         "</div>" +
       "</form>" +
       '<div class="filter-rows">' +
@@ -175,7 +178,10 @@
     if (!form || !input) return;
 
     var timer;
+    var clearBtn = document.getElementById("search-clear");
     input.addEventListener("input", function () {
+      // Show or hide the × right away, not after the search re-renders.
+      if (clearBtn) clearBtn.hidden = !(input.value.trim() || searchState.cuisine || searchState.campus || searchState.area);
       clearTimeout(timer);
       timer = setTimeout(function () {
         var q = input.value.trim();
@@ -195,9 +201,9 @@
       viewHome();
     });
 
-    var clearBtn = document.getElementById("search-clear");
     if (clearBtn) {
       clearBtn.addEventListener("click", function () {
+        clearTimeout(timer);
         searchState = { query: "", cuisine: null, campus: null, area: null };
         viewHome();
         var next = document.getElementById("search-input");

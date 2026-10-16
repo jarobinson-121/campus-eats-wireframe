@@ -190,7 +190,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   font-size: 13px;
   font-weight: 700;
 }
-.hero__title { font-family: var(--font-display); font-weight: 800; letter-spacing: -.01em; font-size: clamp(40px, 7vw, 68px); line-height: 1.02; margin: 0 0 16px; max-width: 14ch; }   /* an h1 on home, a p on browse steps */
+.hero__title { font-family: var(--font-display); font-weight: 800; letter-spacing: -.01em; font-size: clamp(40px, 7vw, 68px); line-height: 1.02; margin: 0 0 16px; max-width: 14ch; }
 .hl {
   color: var(--main);
   /* A soft tint of the accent, so the stripe never fights the text over it. */
@@ -200,6 +200,11 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   white-space: nowrap;
 }
 .hero__lede { font-size: 19px; color: var(--muted); margin: 0; max-width: 46ch; }
+/* Browse steps: a compact header naming where you are, so the tabs,
+   columns and cards sit higher on the screen. */
+.hero--step { padding: 12px 0 16px; }
+.hero--step .hero__title { max-width: none; margin: 0; font-size: clamp(30px, 4.5vw, 44px); line-height: 1.1; }
+.hero--step + .search-section { margin-bottom: 20px; }
 
 .doors {
   list-style: none;
@@ -675,6 +680,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .topbar__util a, .devmenu > summary { padding: 6px 8px; }
   h1 { font-size: 28px; }
   .hero { padding: 20px 0 28px; }
+  .hero--step { padding: 8px 0 12px; }   /* after .hero, so the compact header wins */
   .hero__lede { font-size: 17px; }
   .doors { grid-template-columns: 1fr; }
   .door__head { padding: 18px; }

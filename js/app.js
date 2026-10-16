@@ -190,17 +190,21 @@
   // at the top, and only the browse area underneath changes (the two cards,
   // then tabs and columns, restaurant cards, a restaurant). Routes still
   // change per step, so the back button, click log and test mode still work.
-  function onePage(browseHtml, isHome) {
+  //
+  // heading: on browse steps the big headline becomes a compact header that
+  // names where you are (Food Type, Asian, Asian · Near Campus, Cupbop), and
+  // it's the page's only h1. Leave it out for home.
+  function onePage(browseHtml, heading) {
     // Hide search during an active test task to keep tree-test paths clean.
     var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
-    // The headline is the page's h1 only on home; browse steps keep their own.
-    var tag = isHome ? "h1" : "p";
     app.innerHTML =
-      '<section class="hero">' +
-        '<p class="hero__eyebrow">BYU \u00b7 Provo</p>' +
-        "<" + tag + " class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></" + tag + ">" +
-        '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
-      "</section>" +
+      (heading ?
+        '<section class="hero hero--step"><h1 class="hero__title">' + CE.esc(heading) + "</h1></section>" :
+        '<section class="hero">' +
+          '<p class="hero__eyebrow">BYU \u00b7 Provo</p>' +
+          "<h1 class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></h1>" +
+          '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
+        "</section>") +
       (inTestTask ? "" : renderSearchSection()) +
       '<div class="browse" id="browse" tabindex="-1">' + browseHtml + "</div>";
     if (!inTestTask) attachSearchListeners();
@@ -208,7 +212,13 @@
 
   function viewHome() {
     var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
-    onePage(!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors(), true);
+    onePage(!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors());
+  }
+
+  // Header for a browse step: the view on its own ("Food Type"), then the
+  // categories chosen ("Asian · Near Campus").
+  function stepHeading(trail) {
+    return trail.length === 1 ? trail[0].name.replace(/^Browse by /, "") : trailName(trail);
   }
 
 
@@ -293,12 +303,11 @@
     onePage(
       viewTabs(r.view) +
       crumbs(trail, true) +
-      '<div class="pagehead"><div>' +
-        "<h1>" + CE.esc(trailName(trail)) + "</h1>" +
+      '<div class="pagehead">' +
         '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
-      "</div></div>" +
+      "</div>" +
       siblingChips(trail) +
-      '<ul class="rcards">' + cards + "</ul>");
+      '<ul class="rcards">' + cards + "</ul>", stepHeading(trail));
   }
 
   function viewRestaurant(r) {
@@ -306,10 +315,9 @@
     onePage(
       viewTabs(r.view) +
       crumbs(r.trail, true) +
-      '<h1 class="vh">' + CE.esc(r.node.name) + "</h1>" +
       '<div class="restpage">' + detail(r) + "</div>" +
       '<p><a class="backlink" href="' + CE.hrefFor(listTrail, listTrail.length - 1) + '" data-kind="nav" data-label="Back to ' +
-        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>");
+        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>", r.node.name);
   }
 
   function detail(r) {
@@ -374,11 +382,10 @@
     });
     cols.push('<div class="miller__ghost" aria-hidden="true">← Pick one to keep going</div>');
     onePage(
-      '<h1 class="vh">' + CE.esc(r.view.name) + "</h1>" +
       viewTabs(r.view) +
       '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" +
       crumbs(trail) +
-      '<div class="miller" id="miller">' + cols.join("") + "</div>");
+      '<div class="miller" id="miller">' + cols.join("") + "</div>", stepHeading(trail));
     var miller = document.getElementById("miller");
     miller.scrollLeft = miller.scrollWidth;
   }
@@ -610,6 +617,12 @@
       els = Array.prototype.filter.call(area.children, function (el) {
         return !(keep && el.matches(".tabs, .crumbs"));
       });
+    }
+    // The header names the step, so its text changes each time: fade it.
+    var title = ONE_PAGE[kind] && app.querySelector(".hero__title");
+    if (title) {
+      title.classList.add("enter-fade");
+      title.addEventListener("animationend", function () { title.classList.remove("enter-fade"); }, { once: true });
     }
     Array.prototype.forEach.call(els, function (el) {
       el.classList.add("enter-" + dir);

@@ -311,13 +311,11 @@
   }
 
   function viewRestaurant(r) {
-    var listTrail = r.trail.slice(0, -1);
+    // The breadcrumbs above lead back; no separate back link.
     onePage(
       viewTabs(r.view) +
       crumbs(r.trail, true) +
-      '<div class="restpage">' + detail(r) + "</div>" +
-      '<p><a class="backlink" href="' + CE.hrefFor(listTrail, listTrail.length - 1) + '" data-kind="nav" data-label="Back to ' +
-        CE.esc(trailName(listTrail)) + '">‹ Back to ' + CE.esc(trailName(listTrail)) + "</a></p>", r.node.name);
+      '<div class="restpage">' + detail(r) + "</div>", r.node.name);
   }
 
   function detail(r) {

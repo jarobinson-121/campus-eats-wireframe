@@ -5,6 +5,11 @@
 // any restaurant (a leaf) records the endpoint and moves to the next card.
 // "Give up" records a failure. Runs persist in localStorage; an interrupted
 // run (reload, closed tab) can be resumed from the task it was on.
+//
+// Two studies share this machinery. The tree test is described above. The
+// think-aloud study keeps search on, lets the participant open restaurants
+// and back out, and ends a task only when they press "Pick this restaurant".
+// Each study sends to its own pair of Sheet tabs.
 (function () {
   "use strict";
 
@@ -13,9 +18,20 @@
   var ACTIVE_KEY = "ce.testrun.active.v1";
   var RUNS_KEY = "ce.testruns.v1";
 
+  // attempts/clicks are the Sheet tab names. Runs saved before studies
+  // existed have no study and are tree tests.
+  var STUDIES = {
+    tree: { key: "tree", name: "Tree test", tasks: D.tasks,
+      attempts: "Attempts", clicks: "Clicks", search: false, pickOnArrival: true },
+    thinkaloud: { key: "thinkaloud", name: "Think-aloud", tasks: D.thinkAloudTasks || [],
+      attempts: "Think-aloud", clicks: "Think-aloud clicks", search: true, pickOnArrival: false }
+  };
+  function studyOf(run) { return STUDIES[run && run.study] || STUDIES.tree; }
+
   var active = CE.store(ACTIVE_KEY, null);
   var interrupted = false;
   var justFinished = null;   // runId of the run completed this page-load
+  var here = null;           // think-aloud: the restaurant page on screen, if any
 
   // A task in progress when the page was reloaded is restarted from its card,
   // so its time and clicks are never a mix of two attempts.
@@ -54,18 +70,15 @@
   function elapsed() {
     return inTask() ? (Date.now() - active.task.startedAt) / 1000 : 0;
   }
-  function clock(seconds) {
-    var s = Math.floor(seconds);
-    return Math.floor(s / 60) + ":" + (s % 60 < 10 ? "0" : "") + (s % 60);
-  }
 
   // ------------------------------------------------------------ run control
-  function startRun(participant) {
+  function startRun(participant, study) {
     active = {
       runId: CE.uid("run"),
+      study: study.key,
       participant: participant,
       startedAt: new Date().toISOString(),
-      order: shuffled(D.tasks.map(function (t) { return t.id; })),
+      order: shuffled(study.tasks.map(function (t) { return t.id; })),
       index: 0,
       phase: "card",
       restarts: 0,
@@ -80,22 +93,27 @@
   function beginTask() {
     active.phase = "task";
     active.notice = "";
-    active.task = { startedAt: Date.now(), clicks: 0, path: ["#/"], firstClick: "" };
+    active.task = { startedAt: Date.now(), clicks: 0, path: ["#/"], firstClick: "", searches: [], viewed: [] };
     persist();
+    CE.clearSearch();
     go("#/");
   }
 
-  function finishTask(blockId, trail) {
+  // route: the restaurant page the pick was made on.
+  function finishTask(blockId, route) {
     var t = CE.task(currentTaskId());
     var r = blockId ? CE.restaurant(blockId) : null;
     var result = {
       position: active.index + 1,
       taskId: t.id,
+      target: t.target || "",
       scenario: t.scenario,
       expect: t.expect.slice(),
       endpoint: blockId || "",
       endpointName: r ? r.name : "",
-      endpointRoute: trail ? CE.hrefFor(trail, trail.length - 1) : "",
+      endpointRoute: route || "",
+      searches: (active.task.searches || []).slice(),
+      viewed: (active.task.viewed || []).slice(),
       correct: !!blockId && t.expect.indexOf(blockId) !== -1,
       gaveUp: !blockId,
       seconds: Math.round(elapsed() * 10) / 10,
@@ -104,7 +122,7 @@
       path: active.task.path.slice(),
       startedAt: new Date(active.task.startedAt).toISOString()
     };
-    CE.sync.send("Attempts", [sheetRow(active, result)]);
+    CE.sync.send(studyOf(active).attempts, [sheetRow(active, result)]);
     result.queued = true;
     active.results.push(result);
     active.lastAnswer = r ? "You chose " + r.name + "." : "You gave up on that one. That's useful too.";
@@ -125,6 +143,7 @@
       var runs = readRuns();
       runs.push({
         runId: active.runId,
+        study: studyOf(active).key,
         participant: active.participant,
         startedAt: active.startedAt,
         finishedAt: new Date().toISOString(),
@@ -135,7 +154,7 @@
         clicksQueued: true
       });
       saveRuns(runs);
-      CE.sync.send("Clicks", runClicks(active.runId));
+      CE.sync.send(studyOf(active).clicks, runClicks(active.runId));
       justFinished = { runId: active.runId, participant: active.participant, complete: complete };
     }
     active = null;
@@ -153,20 +172,23 @@
   // never sent twice.
   function backfill() {
     if (!CE.sync.enabled) return;
+    var clickTabs = {};
+    Object.keys(STUDIES).forEach(function (k) { clickTabs[STUDIES[k].clicks] = true; });
     var waiting = {};
     CE.sync.queued().forEach(function (b) {
       b.rows.forEach(function (row) {
-        waiting[b.kind === "Clicks" ? "Clicks:" + row.run : "Attempts:" + row.runId + ":" + row.position] = true;
+        waiting[clickTabs[b.kind] ? "Clicks:" + row.run : "Attempts:" + row.runId + ":" + row.position] = true;
       });
     });
     function catchUp(run, isOpen) {
+      var study = studyOf(run);
       var rows = run.results.filter(function (r) { return !r.queued; });
       var unsent = rows.filter(function (r) { return !waiting["Attempts:" + run.runId + ":" + r.position]; });
-      if (unsent.length) CE.sync.send("Attempts", unsent.map(function (r) { return sheetRow(run, r); }));
+      if (unsent.length) CE.sync.send(study.attempts, unsent.map(function (r) { return sheetRow(run, r); }));
       rows.forEach(function (r) { r.queued = true; });
       var touched = rows.length > 0;
       if (!isOpen && !run.clicksQueued) {
-        if (!waiting["Clicks:" + run.runId]) CE.sync.send("Clicks", runClicks(run.runId));
+        if (!waiting["Clicks:" + run.runId]) CE.sync.send(study.clicks, runClicks(run.runId));
         run.clicksQueued = true;
         touched = true;
       }
@@ -195,17 +217,37 @@
       persist();
     },
 
+    // Search is off during tree-test tasks to keep their paths clean.
+    searchAllowed: function () { return !inTask() || studyOf(active).search; },
+
+    // Called by the search box each time it runs a new, non-empty query.
+    noteSearch: function (query) {
+      if (!inTask()) return;
+      active.task.searches.push(query);
+      active.task.path.push("search: " + query);
+      persist();
+    },
+
     // Called by the router before rendering a browse route. Returns true if
-    // test mode took over (the participant reached a restaurant).
+    // test mode took over (the participant reached a restaurant in the tree
+    // test). In the think-aloud study the restaurant page shows, and the
+    // bar offers "Pick this restaurant".
     onRoute: function (hash, resolved) {
+      here = null;
       if (!inTask()) return false;
       var path = active.task.path;
       if (path[path.length - 1] !== hash) path.push(hash);
-      persist();
-      if (resolved && resolved.node.block) {
-        finishTask(resolved.node.block, resolved.trail);
+      var block = resolved && resolved.node.block;
+      if (block && studyOf(active).pickOnArrival) {
+        persist();
+        finishTask(block, hash);
         return true;
       }
+      if (block) {
+        here = { block: block, route: hash };
+        if (active.task.viewed.indexOf(block) === -1) active.task.viewed.push(block);
+      }
+      persist();
       return false;
     },
 
@@ -215,22 +257,25 @@
     renderBar: function (el) {
       if (!inTask()) { el.hidden = true; el.innerHTML = ""; return; }
       var t = CE.task(currentTaskId());
+      var pick = here && CE.restaurant(here.block);
       el.hidden = false;
       el.innerHTML =
         '<div class="testbar__row">' +
           '<span class="testbar__count">Task ' + (active.index + 1) + " of " + active.order.length + "</span>" +
           '<span class="testbar__task">' + CE.esc(t.scenario) + "</span>" +
-          '<span class="testbar__clock" id="tb-clock">' + clock(elapsed()) + "</span>" +
+          (pick ? '<button type="button" class="btn btn--pick" id="tb-pick" data-label="Pick ' +
+            CE.esc(pick.name) + " (" + t.id + ')">Pick ' + CE.esc(pick.name) + "</button>" : "") +
           '<button type="button" class="btn" id="tb-giveup" data-label="Give up (' + t.id + ')">Give up</button>' +
         "</div>";
       document.getElementById("tb-giveup").addEventListener("click", function () {
         finishTask(null, null);
       });
-    },
-
-    tick: function () {
-      var c = document.getElementById("tb-clock");
-      if (c && inTask()) c.textContent = clock(elapsed());
+      if (pick) {
+        var chosen = here;
+        document.getElementById("tb-pick").addEventListener("click", function () {
+          finishTask(chosen.block, chosen.route);
+        });
+      }
     },
 
     renderPage: function (el) {
@@ -245,13 +290,23 @@
 
   // ------------------------------------------------------------ test pages
   function renderIntro(el) {
+    var tree = STUDIES.tree, talk = STUDIES.thinkaloud;
     el.innerHTML =
       '<p class="eyebrow">Test mode</p>' +
       "<h1>Start a test session</h1>" +
-      '<p class="lede">The participant will get ' + D.tasks.length + " short scenarios in random order. " +
-      "For each one they read the scenario, click OK, and then browse the site to the restaurant they would pick. " +
-      "Choosing a restaurant ends that task and starts the next one. The timer and every click are recorded.</p>" +
+      '<p class="lede">The participant gets short scenarios in random order. For each one they read the scenario, ' +
+      "click OK, and then find the restaurant they would pick. The timer and every click are recorded.</p>" +
       '<form class="card" id="start-form">' +
+        '<fieldset class="studypick">' +
+          '<legend class="field__label">Study</legend>' +
+          '<label class="studypick__opt"><input type="radio" name="study" value="tree" checked> ' +
+            "<span><strong>" + tree.name + "</strong> · " + CE.plural(tree.tasks.length, "task", "tasks") +
+            ". Browse only, no search. Reaching a restaurant ends the task.</span></label>" +
+          '<label class="studypick__opt"><input type="radio" name="study" value="thinkaloud"> ' +
+            "<span><strong>" + talk.name + "</strong> · " + CE.plural(talk.tasks.length, "task", "tasks") +
+            ". Search is on. The participant opens restaurants freely and presses Pick to finish. " +
+            "Results go to the " + talk.attempts + " tab.</span></label>" +
+        "</fieldset>" +
         '<label class="field__label" for="pid">Participant ID</label>' +
         '<input class="field" id="pid" name="pid" autocomplete="off" placeholder="e.g. P01" required>' +
         '<p class="hint">Use a code, not a name.</p>' +
@@ -262,7 +317,8 @@
     document.getElementById("start-form").addEventListener("submit", function (e) {
       e.preventDefault();
       var pid = document.getElementById("pid").value.trim();
-      if (pid) startRun(pid);
+      var picked = el.querySelector('input[name="study"]:checked');
+      if (pid) startRun(pid, STUDIES[picked ? picked.value : "tree"]);
     });
   }
 
@@ -274,8 +330,11 @@
       '<div class="card">' +
         '<p class="card__count">Task ' + (active.index + 1) + " of " + active.order.length + "</p>" +
         '<p class="card__scenario">' + CE.esc(t.scenario) + "</p>" +
-        '<p class="hint">Click OK, then find the restaurant you would pick. ' +
-        "The task ends as soon as you choose a restaurant.</p>" +
+        (studyOf(active).pickOnArrival ?
+          '<p class="hint">Click OK, then find the restaurant you would pick. ' +
+          "The task ends as soon as you choose a restaurant.</p>" :
+          '<p class="hint">Click OK, then find the restaurant you would pick, saying what you\'re thinking as you go. ' +
+          "Open any restaurant to look at it. When you've found the one, press Pick at the top.</p>") +
         '<button type="button" class="btn btn--big" id="card-ok" data-label="OK (start ' + t.id + ')">OK</button>' +
       "</div>" +
       '<p class="hint"><button type="button" class="linkbtn" id="card-end" data-label="End session early">' +
@@ -295,7 +354,7 @@
       '<p class="eyebrow">Test mode</p>' +
       "<h1>Unfinished session</h1>" +
       '<div class="card">' +
-        "<p>Participant <strong>" + CE.esc(active.participant) + "</strong> finished " +
+        "<p>" + studyOf(active).name + ": participant <strong>" + CE.esc(active.participant) + "</strong> finished " +
         CE.plural(active.results.length, "task", "tasks") + " of " + active.order.length + ".</p>" +
         '<button type="button" class="btn btn--big" id="rs-resume" data-label="Resume session">Resume at task ' +
         (active.index + 1) + "</button> " +
@@ -345,9 +404,10 @@
     return ids.map(function (id) { var r = CE.restaurant(id); return r ? r.name : id; }).join(" | ");
   }
 
-  // One Attempts-tab row. Keys become the Sheet's header row, so keep them stable.
+  // One row for the study's attempts tab. Keys become the Sheet's header
+  // row, so keep them stable. Think-aloud rows add three columns at the end.
   function sheetRow(run, r) {
-    return {
+    var row = {
       sentAt: new Date().toISOString(),
       runId: run.runId,
       participant: run.participant,
@@ -365,10 +425,17 @@
       firstClick: r.firstClick,
       path: r.path.join(" > ")
     };
+    if (studyOf(run).key === "thinkaloud") {
+      row.target = r.target || "";
+      row.searches = (r.searches || []).join(" | ");
+      row.viewed = names(r.viewed || []);
+    }
+    return row;
   }
 
   var CSV_HEAD = ["runId", "participant", "runStartedAt", "runComplete", "position", "taskId", "scenario",
-    "expected", "endpoint", "endpointName", "correct", "gaveUp", "seconds", "clicks", "firstClick", "path"];
+    "expected", "endpoint", "endpointName", "correct", "gaveUp", "seconds", "clicks", "firstClick", "path",
+    "study", "target", "searches", "viewed"];
 
   function resultsCsv(runs) {
     var rows = [CSV_HEAD];
@@ -376,14 +443,15 @@
       run.results.forEach(function (r) {
         rows.push([run.runId, run.participant, run.startedAt, run.complete, r.position, r.taskId, r.scenario,
           names(r.expect), r.endpoint, r.endpointName, r.correct, r.gaveUp, r.seconds, r.clicks,
-          r.firstClick, r.path.join(" > ")]);
+          r.firstClick, r.path.join(" > "), studyOf(run).key, r.target || "",
+          (r.searches || []).join(" | "), names(r.viewed || [])]);
       });
     });
     return CE.csv(rows);
   }
 
-  function summaryRows(runs) {
-    return D.tasks.map(function (t) {
+  function summaryRows(study, runs) {
+    return study.tasks.map(function (t) {
       var rs = [];
       runs.forEach(function (run) {
         run.results.forEach(function (r) { if (r.taskId === t.id) rs.push(r); });
@@ -397,13 +465,15 @@
       var avgClicks = rs.length ? rs.reduce(function (n, r) { return n + r.clicks; }, 0) / rs.length : null;
       return "<tr>" +
         '<td class="num">' + t.id + "</td>" +
-        "<td>" + CE.esc(t.scenario) + "</td>" +
+        "<td>" + CE.esc(t.scenario) + (t.target ? '<br><span class="hint">Targets ' + CE.esc(t.target) + "</span>" : "") + "</td>" +
         '<td class="num">' + rs.length + "</td>" +
         '<td class="num">' + pct(ok, rs.length) + "</td>" +
         '<td class="num">' + gave + "</td>" +
         '<td class="num">' + (med == null ? "–" : med.toFixed(1) + "s") + "</td>" +
         '<td class="num">' + (avgClicks == null ? "–" : avgClicks.toFixed(1)) + "</td>" +
         "<td>" + (top ? CE.esc(top) + " (" + firsts[top] + ")" : "–") + "</td>" +
+        (study.pickOnArrival ? "" : '<td class="num">' +
+          pct(rs.filter(function (r) { return r.searches && r.searches.length; }).length, rs.length) + "</td>") +
       "</tr>";
     }).join("");
   }
@@ -432,6 +502,24 @@
       "</tbody></table></div></details></li>";
   }
 
+  // One study's tables. Omitted when that study has no sessions yet.
+  function studySection(study, allRuns) {
+    var runs = allRuns.filter(function (run) { return studyOf(run) === study; });
+    if (!runs.length) return "";
+    var talk = !study.pickOnArrival;
+    return "<h2>" + study.name + "</h2>" +
+      '<p class="hint">' + CE.plural(runs.length, "session", "sessions") +
+      (CE.sync.enabled ? ". Sheet tabs: " + study.attempts + " and " + study.clicks + "." : ".") + "</p>" +
+      "<h3>By task</h3>" +
+      '<div class="scrollx"><table class="logtable"><thead><tr>' +
+      "<th>Task</th><th>Scenario</th><th>Attempts</th><th>Success</th><th>Gave up</th>" +
+      "<th>Median time</th><th>Avg clicks</th><th>Most common first click</th>" +
+      (talk ? "<th>Used search</th>" : "") +
+      "</tr></thead><tbody>" + summaryRows(study, runs) + "</tbody></table></div>" +
+      "<h3>By session</h3>" +
+      '<ul class="runlist">' + runs.slice().reverse().map(runDetail).join("") + "</ul>";
+  }
+
   function renderResults(el) {
     var runs = readRuns();
     var attempts = runs.reduce(function (n, r) { return n + r.results.length; }, 0);
@@ -450,14 +538,7 @@
         (CE.sync.enabled ? '<button type="button" id="rx-sync" data-label="Sync to Google Sheet">Sync now</button>' : "") +
         '<span class="hint" id="rx-status" role="status"></span>' +
       "</div>" +
-      (runs.length ?
-        "<h2>By task</h2>" +
-        '<div class="scrollx"><table class="logtable"><thead><tr>' +
-        "<th>Task</th><th>Scenario</th><th>Attempts</th><th>Success</th><th>Gave up</th>" +
-        "<th>Median time</th><th>Avg clicks</th><th>Most common first click</th>" +
-        "</tr></thead><tbody>" + summaryRows(runs) + "</tbody></table></div>" +
-        "<h2>By session</h2>" +
-        '<ul class="runlist">' + runs.slice().reverse().map(runDetail).join("") + "</ul>"
+      (runs.length ? Object.keys(STUDIES).map(function (k) { return studySection(STUDIES[k], runs); }).join("")
         : '<p class="empty">No sessions yet. Start one from <a href="#/test" data-label="Test mode (from results)">Test mode</a>.</p>');
 
     function status(msg) { document.getElementById("rx-status").textContent = msg; }

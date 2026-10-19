@@ -31,6 +31,15 @@
   });
   var searchState = { query: "" };
 
+  // Test mode empties the box at the start of each task.
+  CE.clearSearch = function () { searchState = { query: "" }; };
+
+  // Every new, non-empty query is part of a think-aloud task's path.
+  function setQuery(q) {
+    if (q && q !== searchState.query) CE.test.noteSearch(q);
+    searchState.query = q;
+  }
+
   // ------------------------------------------------------------ fragments
   // always: show on every screen size (the columns only need them on phones).
   function crumbs(trail, always) {
@@ -163,7 +172,7 @@
       timer = setTimeout(function () {
         var q = input.value.trim();
         if (q === searchState.query) return;
-        searchState.query = q;
+        setQuery(q);
         showSearch(input.selectionStart);
       }, 220);
     });
@@ -171,7 +180,7 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       clearTimeout(timer);
-      searchState.query = input.value.trim();
+      setQuery(input.value.trim());
       showSearch(null);
     });
 
@@ -195,8 +204,8 @@
   // names where you are (Food Type, Asian, Asian · Near Campus, Cupbop), and
   // it's the page's only h1. Leave it out for home.
   function onePage(browseHtml, heading) {
-    // Hide search during an active test task to keep tree-test paths clean.
-    var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
+    // Hidden during tree-test tasks to keep their paths clean.
+    var noSearch = !CE.test.searchAllowed();
     app.innerHTML =
       (heading ?
         '<section class="hero hero--step"><h1 class="hero__title">' + CE.esc(heading) + "</h1></section>" :
@@ -205,14 +214,13 @@
           "<h1 class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></h1>" +
           '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
         "</section>") +
-      (inTestTask ? "" : renderSearchSection()) +
+      (noSearch ? "" : renderSearchSection()) +
       '<div class="browse" id="browse" tabindex="-1">' + browseHtml + "</div>";
-    if (!inTestTask) attachSearchListeners();
+    if (!noSearch) attachSearchListeners();
   }
 
   function viewHome() {
-    var inTestTask = CE.test && CE.test.inTask && CE.test.inTask();
-    onePage(!inTestTask && hasActiveSearch() ? renderSearchResults() : renderDoors());
+    onePage(CE.test.searchAllowed() && hasActiveSearch() ? renderSearchResults() : renderDoors());
   }
 
   // Header for a browse step: the view on its own ("Food Type"), then the
@@ -438,7 +446,7 @@
     CE.views.forEach(function (v) {
       if (CE.depth(v) < 2) problems.push(v.name + " has fewer than two levels.");
     });
-    D.tasks.forEach(function (t) {
+    D.tasks.concat(D.thinkAloudTasks || []).forEach(function (t) {
       t.expect.forEach(function (id) {
         if (!CE.restaurant(id)) problems.push(t.id + " expects unknown restaurant “" + id + "”.");
         else if (!CE.trailsTo(id).length) problems.push(t.id + " expects " + id + ", which is unreachable.");
@@ -630,6 +638,5 @@
 
   window.addEventListener("hashchange", CE.render);
 
-  setInterval(CE.test.tick, 1000);
   CE.render();
 })();

@@ -578,7 +578,14 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .testbar__row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
 .testbar__count { font-weight: 700; white-space: nowrap; background: var(--accent); color: var(--accent-ink); padding: 2px 10px; border-radius: 999px; }
 .testbar__task { flex: 1 1 320px; }
-.testbar__clock { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Think-aloud: shown on a restaurant page; the one button to look for. */
+.testbar .btn--pick { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.testbar .btn--pick:hover { background: var(--accent); filter: brightness(1.08); }
+
+/* Study choice on the test-mode start form. */
+.studypick { border: 0; margin: 0 0 18px; padding: 0; }
+.studypick__opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; cursor: pointer; }
+.studypick__opt input { margin-top: 4px; accent-color: var(--main); }
 
 .card {
   max-width: 660px;

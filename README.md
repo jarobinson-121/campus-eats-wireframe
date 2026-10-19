@@ -22,7 +22,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 
 | File | What it does |
 | --- | --- |
-| `js/data.js` | **The only file you edit to change content or IA.** Restaurants (one record each), category labels, the 10 test tasks. |
+| `js/data.js` | **The only file you edit to change content or IA.** Restaurants (one record each), category labels, the 10 tree-test tasks and the 5 think-aloud tasks. |
 | `js/core.js` | Builds both browse trees from the attributes in `data.js`; shared helpers. |
 | `js/app.js` | Router and page rendering: home, browse pages, restaurant page, site map, coverage check, click log. |
 | `js/logger.js` | Records every click to `localStorage`; JSON/CSV export. |
@@ -38,7 +38,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 - `#/map`: site map of both views
 - `#/check`: coverage check (every restaurant reachable? empty categories? tasks valid?)
 - `#/log`: click log, with Download JSON / CSV and Copy
-- `#/test`: test mode
+- `#/test`: test mode; pick the **Tree test** or the **Think-aloud** study
 - `#/results`: test results by task and by session, with export and import (merge a teammate's export)
 
 ## Editing the IA
@@ -46,12 +46,12 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 - **Add a cuisine:** add `{ key, name }` to `cuisines` and add the key to each matching restaurant's `cuisine` list.
 - **Fix a location:** change the restaurant's `campus` (`"on"` / `"near"`) and `area`, and set `verified: true`.
 - **Restaurant page details:** edit `details` (building or address, hours, menu highlights, a note, the source). Empty `hours` or `menu` shows "Not found yet."
-- **Tasks:** edit `tasks`. `expect` lists every restaurant that counts as a correct answer.
+- **Tasks:** edit `tasks` (tree test) or `thinkAloudTasks` (think-aloud; `target` names the part of the site it exercises). `expect` lists every restaurant that counts as a correct answer.
 
 After any edit, open `#/check` to confirm nothing became unreachable.
 
 ## Notes
 
-- Test-mode results go to the team Google Sheet as each task finishes (tab **Attempts**), and each session's clicks go to the **Clicks** tab when the session ends. A copy also stays in the browser, so export/import still works. Browse-mode clicks stay local; export them from the Click log page.
+- Test-mode results go to the team Google Sheet as each task finishes (tab **Attempts**), and each session's clicks go to the **Clicks** tab when the session ends. A copy also stays in the browser, so export/import still works. Think-aloud sessions go to their own tabs, **Think-aloud** and **Think-aloud clicks**, with three extra columns: `target`, `searches` (queries typed) and `viewed` (restaurants opened). Browse-mode clicks stay local; export them from the Click log page.
 - To turn off Sheet sending, set `sheet.url` to `""` in `data.js`.
 - Restaurant locations are drafted from what most card sorters said and are marked `verified: false` until the team confirms them.

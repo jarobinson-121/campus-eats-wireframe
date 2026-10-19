@@ -94,7 +94,7 @@
     return D.restaurants.filter(function (r) { return r.id === id; })[0];
   };
   CE.task = function (id) {
-    return D.tasks.filter(function (t) { return t.id === id; })[0];
+    return D.tasks.concat(D.thinkAloudTasks || []).filter(function (t) { return t.id === id; })[0];
   };
   CE.details = function (id) {
     return (D.details && D.details[id]) || {};

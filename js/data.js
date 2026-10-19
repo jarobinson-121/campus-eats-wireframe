@@ -359,5 +359,29 @@ window.CE_DATA = {
     { id: "T10",
       scenario: "You want sushi and only have twenty minutes, so it has to be on campus.",
       expect: ["blue-sushi"] }
+  ],
+
+  // ------------------------------------------------ think-aloud scenarios
+  // DRAFT — team to review. Separate study from the tree test above: search
+  // stays on, the participant can open restaurants freely and presses
+  // "Pick this restaurant" to finish, and results go to their own Sheet tabs.
+  // target says which part of the site the task is meant to exercise.
+  thinkAloudTasks: [
+    { id: "TA1", target: "Search",
+      // Hot dogs have no Food Type category, so search is the natural way in.
+      scenario: "You're craving a hot dog. Find a place that sells them.",
+      expect: ["j-dawgs", "harveys"] },
+    { id: "TA2", target: "Location: on campus",
+      scenario: "You have a class on the south side of campus and want to grab lunch without leaving campus. Find somewhere close by.",
+      expect: ["harveys", "pendulum-court"] },
+    { id: "TA3", target: "Location: near campus",
+      scenario: "You live just east of campus and want dinner close to home. Find a place east of campus.",
+      expect: ["sage-pizza", "steak-express"] },
+    { id: "TA4", target: "Food type: Hawaiian",
+      scenario: "You're in the mood for a Hawaiian plate lunch, and you'd rather eat somewhere off campus today.",
+      expect: ["mo-bettahs", "konala"] },
+    { id: "TA5", target: "Food type: Cafe",
+      scenario: "You want a pastry and a warm drink at a bakery near campus, not on it.",
+      expect: ["shirleys"] }
   ]
 };

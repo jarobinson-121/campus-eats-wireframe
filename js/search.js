@@ -28,9 +28,11 @@
     "japanese":         ["sushi", "asian"],
     "korean":           ["asian", "cupbop", "korean bbq"],
     "korean bbq":       ["asian", "cupbop"],
-    "mac and cheese":   ["ronis", "macaroni"],
-    "mac & cheese":     ["ronis", "macaroni"],
-    "mac cheese":       ["ronis", "macaroni"],
+    // Not "macaroni": that also matches Aloha Plate's macaroni salad.
+    // Roni's own keywords already cover it.
+    "mac and cheese":   ["ronis"],
+    "mac & cheese":     ["ronis"],
+    "mac cheese":       ["ronis"],
     "macaroni":         ["mac and cheese"],
     "grilled cheese":   ["ronis"],
     "hot dog":          ["j dawgs", "hotdog"],
@@ -117,9 +119,11 @@
   };
 
   // ------------------------------------------------------------------ engine
-  // Normalize: lowercase, strip punctuation/symbols, collapse whitespace.
+  // Normalize: lowercase, drop apostrophes ("Roni's" -> "ronis"), turn other
+  // punctuation/symbols into spaces, collapse whitespace.
   function norm(s) {
     return String(s || "").toLowerCase()
+      .replace(/['\u2019]/g, "")
       .replace(/[^a-z0-9 ]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
@@ -151,31 +155,57 @@
     return parts.join(" ");
   }
 
-  // Split a query into single words plus bi/trigrams for phrase synonym lookup.
-  function tokenize(q) {
+  // Filler words dropped from multi-word queries ("mac and cheese",
+  // "museum of art"), so they don't match nearly every restaurant.
+  var STOP_WORDS = ["a", "an", "and", "at", "by", "for", "from", "in", "of",
+    "on", "or", "the", "to", "with", "food", "place", "places", "restaurant",
+    "restaurants"];
+
+  // Multi-word phrases kept together as one search unit. Every multi-word
+  // synonym key counts, plus the campus tags added in corpus().
+  var PHRASES = ["on campus", "near campus", "off campus"].concat(
+    Object.keys(SYNONYMS).filter(function (k) { return k.indexOf(" ") !== -1; }));
+  SYNONYMS["off campus"] = ["near campus"];
+
+  function isStop(w) { return STOP_WORDS.indexOf(w) !== -1; }
+
+  // Split a query into units that must all match. Known phrases (longest
+  // first) stay together; other words stand alone, minus stop words. If the
+  // query is nothing but stop words, keep them so it still searches.
+  function units(q) {
     var words = norm(q).split(" ").filter(Boolean);
-    var terms = words.slice();
-    for (var i = 0; i < words.length - 1; i++) {
-      terms.push(words[i] + " " + words[i + 1]);
-      if (i < words.length - 2) terms.push(words[i] + " " + words[i + 1] + " " + words[i + 2]);
+    var out = [];
+    for (var i = 0; i < words.length; ) {
+      var found = null;
+      for (var n = Math.min(4, words.length - i); n >= 2 && !found; n--) {
+        var p = words.slice(i, i + n).join(" ");
+        if (PHRASES.indexOf(p) !== -1) found = p;
+      }
+      if (found) { out.push(found); i += found.split(" ").length; }
+      else { if (!isStop(words[i])) out.push(words[i]); i++; }
     }
-    return terms;
+    return out.length ? out : words;
   }
 
-  // Expand a term list through the synonym map (one level deep).
-  function expand(terms) {
-    var out = terms.slice();
-    terms.forEach(function (t) {
-      var syns = SYNONYMS[t];
-      if (syns) syns.forEach(function (s) { if (out.indexOf(s) === -1) out.push(s); });
-    });
-    return out;
+  // A term matches if it or one of its synonyms (one level deep) is in the corpus.
+  function termMatches(c, t) {
+    return [t].concat(SYNONYMS[t] || []).some(function (s) { return c.indexOf(s) !== -1; });
   }
 
-  // True if the restaurant's corpus contains any expanded query term.
+  // A unit matches by itself or its synonyms. A phrase without stop words
+  // ("street tacos") may also match by all of its words; one with stop words
+  // ("on campus", "mac and cheese") must match as a phrase.
+  function unitMatches(c, u) {
+    if (termMatches(c, u)) return true;
+    var parts = u.split(" ");
+    if (parts.length < 2 || parts.some(isStop)) return false;
+    return parts.every(function (w) { return termMatches(c, w); });
+  }
+
+  // True if the restaurant's corpus matches every unit of the query.
   function matchesQuery(c, query) {
-    if (!query) return true;
-    return expand(tokenize(query)).some(function (t) { return c.indexOf(t) !== -1; });
+    if (!norm(query)) return true;
+    return units(query).every(function (u) { return unitMatches(c, u); });
   }
 
   // True if the restaurant passes every active filter value.

@@ -23,7 +23,25 @@
     if (!devmenu.open) return;
     if (!devmenu.contains(e.target) || e.target.closest(".devmenu__panel a")) devmenu.open = false;
   });
+  // "Start over" goes home with an empty search box.
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-clear-search]")) CE.clearSearch();
+  });
+
+  // One filter-token menu open at a time; a click elsewhere or Escape
+  // closes it.
+  document.addEventListener("click", function (e) {
+    Array.prototype.forEach.call(document.querySelectorAll(".pick__menu-wrap[open]"), function (d) {
+      if (!d.contains(e.target)) d.open = false;
+    });
+  });
   document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      Array.prototype.forEach.call(document.querySelectorAll(".pick__menu-wrap[open]"), function (d) {
+        d.open = false;
+        d.querySelector("summary").focus();
+      });
+    }
     if (e.key === "Escape" && devmenu.open) {
       devmenu.open = false;
       devmenu.querySelector("summary").focus();
@@ -41,8 +59,7 @@
   }
 
   // ------------------------------------------------------------ fragments
-  // always: show on every screen size (the columns only need them on phones).
-  function crumbs(trail, always) {
+  function crumbs(trail) {
     var parts = ['<a href="#/" data-kind="crumb" data-label="Home (breadcrumb)">Home</a>'];
     trail.forEach(function (n, i) {
       if (i === trail.length - 1) {
@@ -52,11 +69,12 @@
           CE.esc(n.name) + ' (breadcrumb)">' + CE.esc(n.name) + "</a>");
       }
     });
-    return '<nav class="crumbs' + (always ? "" : " miller-crumbs") + '" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
+    return '<nav class="crumbs" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
   }
 
   function subFor(node) {
-    return node.children ? CE.plural(CE.countLeaves(node), "restaurant", "restaurants") : "";
+    if (!node.children) return "";
+    return (node.desc ? node.desc + " \u00b7 " : "") + CE.plural(CE.countLeaves(node), "restaurant", "restaurants");
   }
 
   // --------------------------------------------------------- search helpers
@@ -64,21 +82,40 @@
     return !!searchState.query;
   }
 
+  // A door's row of shortcut links, one per child of the node at the end of
+  // trail.
+  function opts(children, trail) {
+    return '<ul class="door__opts">' + children.map(function (c) {
+      return '<li><a class="opt" href="' + CE.hrefFor(trail.concat([c]), trail.length) + '" data-kind="tile" data-label="' +
+        CE.esc(c.name) + ' (home shortcut)"' + (c.desc ? ' title="' + CE.esc(c.desc) + '"' : "") + ">" +
+        '<span class="opt__label">' + CE.esc(c.name) + "</span></a></li>";
+    }).join("") + "</ul>";
+  }
+
+  // Door icons: utensils for food type, a map pin for location.
+  var DOOR_ICONS = {
+    food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+    place: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'
+  };
+
   function renderDoors() {
     // Each option in a door is its own link, so people can jump straight to
     // a category; the door's heading still opens the view at the top.
     var doors = CE.views.map(function (v) {
       return '<li class="door">' +
         '<a class="door__head" href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + '">' +
+          '<span class="door__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"' +
+            ' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + DOOR_ICONS[v.key] + "</svg></span>" +
           '<span class="door__text"><span class="door__name">' + CE.esc(v.name) + "</span>" +
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
-        '<ul class="door__opts">' + v.children.map(function (c) {
-          return '<li><a class="opt" href="' + CE.hrefFor([v, c], 1) + '" data-kind="tile" data-label="' +
-            CE.esc(c.name) + ' (home shortcut)">' +
-            '<span class="opt__label">' + CE.esc(c.name) + "</span></a></li>";
-        }).join("") + "</ul>" +
+        (v.grouped ? v.children.map(function (g) {
+          return '<div class="door__group">' +
+            '<a class="door__grouphead" href="' + CE.hrefFor([v, g], 1) + '" data-kind="tile" data-label="' +
+              CE.esc(g.name) + ' (home shortcut)">' + CE.esc(g.name) + "</a>" +
+            opts(g.children, [v, g]) + "</div>";
+        }).join("") : opts(v.children, [v])) +
         "</li>";
     }).join("");
     return '<ul class="doors">' + doors + "</ul>";
@@ -96,7 +133,7 @@
           // always rendered so it can appear as soon as typing starts.
           '<div class="searchbar__field">' +
             '<input type="search" id="search-input" class="searchbar__input"' +
-              ' placeholder="Search by food, restaurant, or location\u2026"' +
+              ' placeholder="Try \u201ctacos\u201d, \u201cJ Dawgs\u201d, \u201cbakery\u201d, or \u201con campus\u201d"' +
               ' value="' + q + '" autocomplete="off" spellcheck="false">' +
             '<button type="button" id="search-clear" class="searchbar__x"' + (anyActive ? "" : " hidden") +
               ' aria-label="Clear search" data-kind="search" data-label="Clear search">' +
@@ -112,7 +149,9 @@
     var cuisines = CE.cuisineNames(r);
     var info = CE.details(r.id);
     var trails = CE.trailsTo(r.id);
-    var href = trails.length ? CE.hrefFor(trails[0], trails[0].length - 1) : "#/";
+    // ?q= lets the restaurant page lead back to these results.
+    var href = trails.length ? CE.hrefFor(trails[0], trails[0].length - 1) +
+      "?q=" + encodeURIComponent(searchState.query) : "#/";
     var hours = info.hours && info.hours.length ? info.hours[0] : "Hours not listed yet";
     return '<li><a class="rcard" href="' + href + '" data-kind="tile" data-label="' + CE.esc(r.name) + ' (search result)">' +
       '<span class="rcard__go" aria-hidden="true">\u2192</span>' +
@@ -123,15 +162,30 @@
     "</a></li>";
   }
 
+  // Offered when a search finds nothing.
+  var EXAMPLE_SEARCHES = ["pizza", "hot dog", "bakery", "on campus"];
+
   function renderSearchResults() {
-    var results = CE.search.run(searchState.query, { cuisine: null, campus: null, area: null });
+    var found = CE.search.find(searchState.query, { cuisine: null, campus: null, area: null });
+    var results = found.results;
+    var q = "\u201c" + searchState.query + "\u201d";
     if (!results.length) {
-      return '<p class="search-empty" role="status">' +
-        '<strong>No restaurants matched.</strong> Try different keywords.' +
-      "</p>";
+      return '<div class="search-empty" role="status">' +
+        "<strong>No restaurants matched " + CE.esc(q) + ".</strong>" +
+        '<p>Try one of these, or browse instead.</p>' +
+        '<ul class="chips">' + EXAMPLE_SEARCHES.map(function (x) {
+          return '<li><button type="button" class="chip" data-query="' + CE.esc(x) + '" data-kind="search"' +
+            ' data-label="Example search: ' + CE.esc(x) + '"><span class="chip__label">' + CE.esc(x) + "</span></button></li>";
+        }).join("") + "</ul>" +
+        '<p class="search-empty__browse">' + CE.views.map(function (v) {
+          return '<a href="#/' + v.key + '" data-kind="tile" data-label="' + CE.esc(v.name) + ' (no results)">' +
+            CE.esc(v.name) + " \u2192</a>";
+        }).join("") + "</p>" +
+      "</div>";
     }
     return '<p class="lede" role="status" aria-live="polite">' +
-      CE.esc(CE.plural(results.length, "restaurant", "restaurants")) + " found</p>" +
+      (found.closeMatch ? "No exact match. Showing close matches: " : "") +
+      CE.esc(CE.plural(results.length, "restaurant", "restaurants")) + " for " + CE.esc(q) + "</p>" +
       '<ul class="rcards">' + results.map(renderSearchCard).join("") + "</ul>";
   }
 
@@ -192,6 +246,17 @@
       });
     }
 
+    // Example searches in the no-results message.
+    var browse = document.getElementById("browse");
+    if (browse) {
+      browse.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-query]");
+        if (!b) return;
+        setQuery(b.getAttribute("data-query"));
+        showSearch(null);
+      });
+    }
+
   }
 
   // ------------------------------------------------------------ pages
@@ -201,7 +266,7 @@
   // change per step, so the back button, click log and test mode still work.
   //
   // heading: on browse steps the big headline becomes a compact header that
-  // names where you are (Food Type, Asian, Asian · Near Campus, Cupbop), and
+  // names where you are (Food Type, Asian, Asian · Off Campus, Cupbop), and
   // it's the page's only h1. Leave it out for home.
   function onePage(browseHtml, heading) {
     // Hidden during tree-test tasks to keep their paths clean.
@@ -224,16 +289,11 @@
   }
 
   // Header for a browse step: the view on its own ("Food Type"), then the
-  // categories chosen ("Asian · Near Campus").
+  // categories chosen ("Asian · Off Campus").
   function stepHeading(trail) {
     return trail.length === 1 ? trail[0].name.replace(/^Browse by /, "") : trailName(trail);
   }
 
-
-  // Browse pages are Finder-style columns: one column per level along the
-  // route, the chosen item in each column marked, and the restaurant's
-  // details in a final panel. The route still names exactly one node, so
-  // the click log, test mode and the back button work as before.
   function viewTabs(current) {
     return '<nav class="tabs" aria-label="Ways to browse">' + CE.views.map(function (v) {
       return '<a class="tab' + (v === current ? " is-current" : "") + '" href="#/' + v.key + '"' +
@@ -243,24 +303,51 @@
     }).join("") + "</nav>";
   }
 
-  function column(trail, selectedKey, isCurrent) {
+  // Choices already made, as filter tokens ("Food type: Asian ▾ ×"). A
+  // token opens a menu of its siblings to switch to; × removes that choice
+  // (and the ones after it).
+  function pickBar(trail) {
+    var tokens = trail.slice(1).map(function (n, i) {
+      var parentTrail = trail.slice(0, i + 1);
+      var parent = parentTrail[parentTrail.length - 1];
+      var label = parent.childLabel || parent.name;
+      var menu = parent.children.map(function (c) {
+        var on = c === n;
+        return '<li><a class="pick__opt' + (on ? " is-current" : "") + '" href="' +
+          CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' + (on ? ' aria-current="true"' : "") +
+          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
+          '<span>' + CE.esc(c.name) + '</span><span class="pick__count">' + CE.countLeaves(c) + "</span></a></li>";
+      }).join("");
+      return '<li class="pick">' +
+        '<details class="pick__menu-wrap">' +
+          '<summary class="pick__btn" data-kind="filter" data-label="' + CE.esc(label + ": " + n.name) + ' (change)">' +
+            '<span class="pick__label">' + CE.esc(label) + "</span>" +
+            '<span class="pick__value">' + CE.esc(n.name) + "</span>" +
+            '<span class="pick__caret" aria-hidden="true">\u25be</span>' +
+          "</summary>" +
+          '<ul class="pick__menu">' + menu + "</ul>" +
+        "</details>" +
+        '<a class="pick__x" href="' + CE.hrefFor(parentTrail, parentTrail.length - 1) + '" aria-label="Remove ' + CE.esc(n.name) + '"' +
+          ' data-kind="filter" data-label="Remove ' + CE.esc(n.name) + '">\u00d7</a>' +
+      "</li>";
+    }).join("");
+    return tokens ? '<ul class="pickbar" aria-label="Your choices">' + tokens + "</ul>" : "";
+  }
+
+  // The next choice, as a grid of tiles: name, landmark line, count.
+  function pickTiles(trail) {
     var node = trail[trail.length - 1];
     var here = CE.hrefFor(trail, trail.length - 1);
-    // Name the parent too: "On Campus" alone is ambiguous two levels down.
-    var heading = trail.length === 1 ? node.short :
-      (trail.length > 2 ? trail[trail.length - 2].name + " · " : "") + node.name;
-    var items = node.children.map(function (c) {
-      var selected = c.key === selectedKey;
-      return '<li><a class="colitem' + (selected ? " is-selected" : "") + '" href="' + here + "/" + c.key + '"' +
-        (selected ? ' aria-current="true"' : "") +
-        ' data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        '<span class="colitem__name">' + CE.esc(c.name) + "</span>" +
-        (c.children ? '<span class="colitem__sub">' + CE.esc(subFor(c)) + '</span><span class="colitem__go" aria-hidden="true">›</span>' : "") +
+    return '<section class="picks">' +
+      '<h2 class="picks__q">' + CE.esc(node.childLabel || node.name) + "</h2>" +
+      '<ul class="picktiles">' + node.children.map(function (c) {
+        return '<li><a class="picktile" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
+          '<span class="picktile__name">' + CE.esc(c.name) + "</span>" +
+          (c.desc ? '<span class="picktile__desc">' + CE.esc(c.desc) + "</span>" : "") +
+          '<span class="picktile__count">' + CE.esc(CE.plural(CE.countLeaves(c), "restaurant", "restaurants")) + "</span>" +
+          '<span class="picktile__go" aria-hidden="true">\u2192</span>' +
         "</a></li>";
-    }).join("");
-    return '<section class="miller__col' + (isCurrent ? " is-current" : "") + '">' +
-      '<h2 class="miller__head">' + CE.esc(heading) + "</h2>" +
-      '<ul class="collist">' + items + "</ul></section>";
+      }).join("") + "</ul></section>";
   }
 
   // A node whose children are restaurants: the point where columns give way
@@ -269,61 +356,73 @@
     return !!(node.children && node.children[0] && node.children[0].block);
   }
 
+  // Area labels already say "(Off Campus)", so "Off Campus · South of Campus
+  // (Off Campus)" drops the first part.
+  function namedByChild(n, child) {
+    return !!child && child.name.indexOf("(" + n.name + ")") !== -1;
+  }
+
   function trailName(trail) {
-    return trail.slice(1).map(function (n) { return n.name; }).join(" · ");
+    var t = trail.slice(1);
+    return t.filter(function (n, i) { return !namedByChild(n, t[i + 1]); })
+      .map(function (n) { return n.name; }).join(" · ");
   }
 
-  // Sibling categories as chips, so people can switch (e.g. On Campus ↔
-  // Near Campus) without backing out.
-  function siblingChips(trail) {
-    var parentTrail = trail.slice(0, -1);
-    var parent = parentTrail[parentTrail.length - 1];
-    var current = trail[trail.length - 1];
-    if (!parent || parent.children.length < 2) return "";
-    return '<nav aria-label="Other choices under ' + CE.esc(parent.name) + '"><ul class="chips chips--siblings">' +
-      parent.children.map(function (c) {
-        var on = c === current;
-        return '<li><a class="chip' + (on ? " is-current" : "") + '" href="' + CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' +
-          (on ? ' aria-current="true"' : "") +
-          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
-          '<span class="chip__label">' + CE.esc(c.name) + "</span></a></li>";
-      }).join("") + "</ul></nav>";
-  }
-
-  function viewResults(r) {
-    var trail = r.trail;
-    var here = CE.hrefFor(trail, trail.length - 1);
+  // The restaurants under a node, as cards with their top-level details.
+  function restaurantCards(r) {
+    var here = CE.hrefFor(r.trail, r.trail.length - 1);
     // Skip the attribute this view already filtered on; every card would
     // repeat it.
     var byFood = r.view.key === "food";
-    var cards = r.node.children.map(function (c) {
-      var rest = CE.restaurant(c.block);
-      var cuisines = CE.cuisineNames(rest);
-      var info = CE.details(rest.id);
-      return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
-        '<span class="rcard__go" aria-hidden="true">→</span>' +
-        '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
-        '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
-          (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
-        '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
-        "</a></li>";
-    }).join("");
-    onePage(
-      viewTabs(r.view) +
-      crumbs(trail, true) +
-      '<div class="pagehead">' +
+    return '<div class="pagehead">' +
+        (r.node.desc ? '<p class="pagehead__desc">' + CE.esc(r.node.desc) + "</p>" : "") +
         '<p class="lede">' + CE.esc(CE.plural(r.node.children.length, "restaurant", "restaurants")) + ". Pick one for details.</p>" +
       "</div>" +
-      siblingChips(trail) +
-      '<ul class="rcards">' + cards + "</ul>", stepHeading(trail));
+      '<ul class="rcards">' + r.node.children.map(function (c) {
+        var rest = CE.restaurant(c.block);
+        var cuisines = CE.cuisineNames(rest);
+        var info = CE.details(rest.id);
+        return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
+          '<span class="rcard__go" aria-hidden="true">→</span>' +
+          '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
+          '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
+            (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
+          '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
+          "</a></li>";
+      }).join("") + "</ul>";
+  }
+
+  // Breadcrumbs for a restaurant opened from search: Home › Search: “q” ›
+  // the restaurant. The search crumb goes home, where the results show.
+  function searchCrumbs(r) {
+    var sep = '<span class="crumbs__sep">›</span>';
+    return '<nav class="crumbs" aria-label="Breadcrumb">' +
+      '<a href="#/" data-kind="crumb" data-label="Home (breadcrumb)">Home</a>' + sep +
+      '<a href="#/" data-kind="crumb" data-label="Search results (breadcrumb)">Search: \u201c' + CE.esc(viaSearch) + '\u201d</a>' + sep +
+      '<span aria-current="page">' + CE.esc(r.node.name) + "</span></nav>";
   }
 
   function viewRestaurant(r) {
-    // The breadcrumbs above lead back; no separate back link.
     onePage(
-      viewTabs(r.view) +
-      crumbs(r.trail, true) +
-      '<div class="restpage">' + detail(r) + "</div>", r.node.name);
+      viewTabs(viaSearch ? null : r.view) +
+      (viaSearch ? searchCrumbs(r) : crumbs(r.trail)) +
+      '<div class="restpage">' + detail(r) + restEnd(r) + "</div>", r.node.name);
+  }
+
+  // The page ends with a clear way on: back to the list this restaurant was
+  // picked from (search results or the browse list), or start over.
+  function restEnd(r) {
+    var parent = r.trail.slice(0, -1);
+    var back = viaSearch ?
+      { href: "#/", label: "Back to search results", sub: "\u201c" + viaSearch + "\u201d" } :
+      { href: CE.hrefFor(parent, parent.length - 1), label: "Back to results", sub: trailName(parent) };
+    return '<nav class="restend" aria-label="Where to next">' +
+      '<a class="btn btn--big restend__back" href="' + back.href + '" data-kind="nav" data-label="' + back.label + '">' +
+        '<span aria-hidden="true">\u2190</span> ' + back.label +
+        (back.sub ? '<span class="restend__sub">' + CE.esc(back.sub) + "</span>" : "") +
+      "</a>" +
+      '<a class="btn" href="#/" data-clear-search data-kind="nav" data-label="Start over">Start over</a>' +
+    "</nav>";
   }
 
   function detail(r) {
@@ -373,27 +472,21 @@
       "</section>";
   }
 
-  function viewColumns(r) {
+  // Browse steps: the choices made so far as filter tokens, then the next
+  // choice as tiles; at the last level the restaurants show as cards. The
+  // route still names exactly one node, so the click log, test mode and the
+  // back button work as before.
+  function viewBrowse(r) {
+    if (r.node.block) return viewRestaurant(r);
     var trail = r.trail;
-    var isLeaf = !!r.node.block;
-    // Columns only for choosing categories; once the list is restaurants,
-    // switch to cards with their top-level details.
-    if (isLeaf) return viewRestaurant(r);
-    if (listsRestaurants(r.node)) return viewResults(r);
-    var cols = [];
-    trail.forEach(function (node, i) {
-      if (!node.children) return;
-      var deepest = i === trail.length - 1;
-      cols.push(column(trail.slice(0, i + 1), deepest ? null : trail[i + 1].key, deepest));
-    });
-    cols.push('<div class="miller__ghost" aria-hidden="true">← Pick one to keep going</div>');
+    var atRestaurants = listsRestaurants(r.node);
     onePage(
       viewTabs(r.view) +
-      '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" +
+      (trail.length === 1 ? '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" : "") +
       crumbs(trail) +
-      '<div class="miller" id="miller">' + cols.join("") + "</div>", stepHeading(trail));
-    var miller = document.getElementById("miller");
-    miller.scrollLeft = miller.scrollWidth;
+      pickBar(trail) +
+      (atRestaurants ? restaurantCards(r) : pickTiles(trail)),
+      stepHeading(trail));
   }
 
   // A researched list (hours, menu), or a plain "not listed" when the
@@ -540,9 +633,16 @@
   // ------------------------------------------------------------ router
   var INSTRUMENTS = { map: viewMap, check: viewCheck, log: viewLog, results: function () { CE.test.renderResults(app); } };
 
+  // The query a restaurant was opened from, when its route ends in ?q=.
+  var viaSearch = "";
+
   CE.render = function () {
     var hash = window.location.hash || "#/";
-    var segments = hash.replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
+    var qAt = hash.indexOf("?q=");
+    viaSearch = qAt === -1 ? "" : decodeURIComponent(hash.slice(qAt + 3));
+    if (viaSearch) searchState.query = viaSearch;
+    var segments = (qAt === -1 ? hash : hash.slice(0, qAt))
+      .replace(/^#\/?/, "").split("/").filter(Boolean).map(decodeURIComponent);
     var running = CE.test.isActive();
 
     // During a run, the participant only sees the site and the test cards.
@@ -561,7 +661,7 @@
     CE.test.renderBar(testbar);
 
     if (segments.length === 0) viewHome();
-    else if (resolved) viewColumns(resolved);
+    else if (resolved) viewBrowse(resolved);
     else if (segments[0] === "test" && segments.length === 1) CE.test.renderPage(app);
     else if (INSTRUMENTS[segments[0]] && segments.length === 1 && !running) INSTRUMENTS[segments[0]]();
     else notFound();
@@ -571,9 +671,9 @@
     var name = title && segments.length ? title.textContent : D.title;
     document.title = (name === D.title ? "" : name + " — ") + D.title;
 
-    var inColumns = resolved && !resolved.node.block && !listsRestaurants(resolved.node);
+    var choosing = resolved && !resolved.node.block && !listsRestaurants(resolved.node);
     var kind = segments.length === 0 ? "home" : !resolved ? "other" :
-      resolved.node.block ? "restaurant" : inColumns ? "columns" : "results";
+      resolved.node.block ? "restaurant" : choosing ? "steps" : "results";
 
     // Within the one-page flow the screen doesn't jump to the top: it only
     // scrolls if the browse area has gone above the fold, and just enough to
@@ -596,24 +696,24 @@
   // Only what's new animates, sliding a little from the side you're heading
   // toward: deeper comes in from the right, back from the left, and a
   // sideways switch (another tab, pill or row) just fades. Anything that
-  // didn't change (header, tabs, columns you've already picked from) stays
+  // didn't change (header, tabs, rows you've already picked from) stays
   // still, so there's always something fixed to look at.
   var lastRoute = null;
-  var BROWSE = { columns: 1, results: 1, restaurant: 1 };
-  var ONE_PAGE = { home: 1, columns: 1, results: 1, restaurant: 1 };
+  var BROWSE = { steps: 1, results: 1, restaurant: 1 };
+  var ROWS = { steps: 1, results: 1 };   // pages with filter tokens
+  var ONE_PAGE = { home: 1, steps: 1, results: 1, restaurant: 1 };
   function entrance(hash, depth, kind) {
     var prev = lastRoute;
     lastRoute = { hash: hash, depth: depth, kind: kind };
     if (!prev || prev.hash === hash) return;
     var dir = depth > prev.depth ? "fwd" : depth < prev.depth ? "back" : "fade";
     var els;
-    if (kind === "columns" && prev.kind === "columns") {
-      // Within the columns: the newest column (and the empty hint) comes in;
-      // backing out only redraws the hint.
-      els = app.querySelectorAll(dir === "back" ? ".miller__ghost" : ".miller__col.is-current, .miller__ghost");
-    } else if (kind === "results" && prev.kind === "results") {
-      // Switching pills: the pills stay, the heading and cards change.
-      els = app.querySelectorAll(".pagehead, .rcards");
+    if (kind === "steps" && prev.kind === "steps") {
+      // Within the steps: the tokens stay, the tiles change.
+      els = app.querySelectorAll(".picks");
+    } else if (ROWS[kind] && ROWS[prev.kind]) {
+      // Between steps and results: the tokens stay, what's under them changes.
+      els = app.querySelectorAll(".picks, .pagehead, .rcards");
     } else {
       // A new kind of page: the browse area (never the headline or search
       // above it), except the tabs and breadcrumbs, which stay put when

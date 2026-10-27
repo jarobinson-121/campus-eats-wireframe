@@ -75,7 +75,19 @@
     "poke":             ["hawaiian", "asian"],
     "shakes":           ["burgers", "byu creamery"],
     "shake":            ["burgers", "byu creamery"],
-    "fries":            ["burgers", "chicken"]
+    "fries":            ["burgers", "chicken"],
+    // Testers looked for pastries under "bakery" and missed the cafes.
+    // "cafe bakery" is the category name, so these skip Teri Gao Asian Cafe.
+    "pastry":           ["cafe bakery"],
+    "pastries":         ["cafe bakery"],
+    "croissant":        ["cafe bakery"],
+    "muffin":           ["cafe bakery"],
+    "donut":            ["cafe bakery"],
+    "doughnut":         ["cafe bakery"],
+    "coffee":           ["cafe bakery"],
+    "coffee shop":      ["cafe bakery"],
+    "dessert":          ["cafe bakery", "ice cream"],
+    "desserts":         ["cafe bakery", "ice cream"]
   };
 
   // ------------------------------------------------------- per-restaurant keywords
@@ -138,21 +150,46 @@
     return text;
   }
 
-  // Build the full searchable corpus for one restaurant.
-  function corpus(r) {
+  // Build the searchable parts (name, cuisines, location, menu, keywords)
+  // for one restaurant.
+  function corpusParts(r) {
     var parts = [norm(r.name)];
     r.cuisine.forEach(function (k) {
       var c = D.cuisines.filter(function (x) { return x.key === k; })[0];
       if (c) parts.push(norm(c.name));
     });
     parts.push(norm(CE.locationName(r)));
-    parts.push(r.campus === "on" ? "on campus" : "near campus");
+    parts.push(norm(CE.area(r).desc));
+    parts.push(r.campus === "on" ? "on campus" : "near campus off campus");
     var det = CE.details(r.id);
     if (det.menu) det.menu.forEach(function (m) { parts.push(norm(m)); });
     if (det.where) parts.push(withoutOtherNames(norm(det.where), r));
     var kw = KEYWORDS[r.id];
     if (kw) kw.forEach(function (k) { parts.push(norm(k)); });
-    return parts.join(" ");
+    return parts;
+  }
+
+  // Spaces removed, so "jdawgs" finds "j dawgs" and "chickfila" finds
+  // "chick fil a".
+  function squash(s) { return s.replace(/ /g, ""); }
+
+  // Fold sound-alike spellings ("dawgs"/"dogs", "chik"/"chick") and doubled
+  // letters, for typo matching only.
+  function fold(s) {
+    return squash(s).replace(/ph/g, "f").replace(/aw/g, "o").replace(/ck/g, "k")
+      .replace(/z/g, "s").replace(/(.)\1+/g, "$1");
+  }
+
+  // Everything a query is compared against for one restaurant.
+  function index(r) {
+    var parts = corpusParts(r);
+    var text = parts.join(" ");
+    var words = text.split(" ").filter(function (w, i, a) { return w && a.indexOf(w) === i; });
+    return {
+      text: text,
+      squashed: parts.map(squash),
+      folded: words.map(fold).concat(parts.map(fold))
+    };
   }
 
   // Filler words dropped from multi-word queries ("mac and cheese",
@@ -162,8 +199,12 @@
     "restaurants"];
 
   // Multi-word phrases kept together as one search unit. Every multi-word
-  // synonym key counts, plus the campus tags added in corpus().
-  var PHRASES = ["on campus", "near campus", "off campus"].concat(
+  // synonym key counts, plus the campus tags added in corpusParts().
+  // Area names ("south campus", "south of campus") must match as a whole,
+  // so one never pulls in the other.
+  var AREA_PHRASES = D.areas.map(function (a) { return norm(a.name.replace(/\(.*\)/, "")); })
+    .filter(function (a) { return a.indexOf(" ") !== -1; });
+  var PHRASES = ["on campus", "near campus", "off campus"].concat(AREA_PHRASES,
     Object.keys(SYNONYMS).filter(function (k) { return k.indexOf(" ") !== -1; }));
   SYNONYMS["off campus"] = ["near campus"];
 
@@ -188,24 +229,60 @@
   }
 
   // A term matches if it or one of its synonyms (one level deep) is in the corpus.
-  function termMatches(c, t) {
-    return [t].concat(SYNONYMS[t] || []).some(function (s) { return c.indexOf(s) !== -1; });
+  function termMatches(idx, t) {
+    return [t].concat(SYNONYMS[t] || []).some(function (s) { return idx.text.indexOf(s) !== -1; });
   }
 
-  // A unit matches by itself or its synonyms. A phrase without stop words
-  // ("street tacos") may also match by all of its words; one with stop words
-  // ("on campus", "mac and cheese") must match as a phrase.
-  function unitMatches(c, u) {
-    if (termMatches(c, u)) return true;
+  // A unit matches by itself or its synonyms, or with its spaces removed.
+  // A phrase without stop words ("street tacos") may also match by all of
+  // its words; one with stop words ("on campus", "mac and cheese") must
+  // match as a phrase.
+  function unitMatches(idx, u) {
+    if (termMatches(idx, u)) return true;
+    var sq = squash(u);
+    if (sq.length >= 4 && idx.squashed.some(function (p) { return p.indexOf(sq) !== -1; })) return true;
     var parts = u.split(" ");
-    if (parts.length < 2 || parts.some(isStop)) return false;
-    return parts.every(function (w) { return termMatches(c, w); });
+    if (parts.length < 2 || parts.some(isStop) || AREA_PHRASES.indexOf(u) !== -1) return false;
+    return parts.every(function (w) { return termMatches(idx, w); });
   }
 
-  // True if the restaurant's corpus matches every unit of the query.
-  function matchesQuery(c, query) {
-    if (!norm(query)) return true;
-    return units(query).every(function (u) { return unitMatches(c, u); });
+  // Edit distance (with swapped letters counting as one edit), giving up
+  // once it passes max.
+  function distance(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var prev2 = [], prev = [], cur;
+    for (var j = 0; j <= b.length; j++) prev[j] = j;
+    for (var i = 1; i <= a.length; i++) {
+      cur = [i];
+      var best = i;
+      for (j = 1; j <= b.length; j++) {
+        var cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+          cur[j] = Math.min(cur[j], prev2[j - 2] + 1);
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return max + 1;
+      prev2 = prev; prev = cur;
+    }
+    return prev[b.length];
+  }
+
+  // Typos allowed for a word of this length: none under 4 letters, one up
+  // to 6, two beyond.
+  function typosAllowed(n) { return n < 4 ? 0 : n < 7 ? 1 : 2; }
+
+  // Typo-tolerant match ("jdogs", "costa vita", "chikfila"): the folded unit
+  // is within a few edits of a word or part, or of the start of a longer one
+  // ("resturan" for a partly typed name).
+  function fuzzyMatches(idx, u) {
+    var f = fold(u);
+    var k = typosAllowed(f.length);
+    if (!k) return false;
+    return idx.folded.some(function (x) {
+      if (distance(f, x, k) <= k) return true;
+      return f.length >= 5 && x.length > f.length && distance(f, x.slice(0, f.length), k) <= k;
+    });
   }
 
   // True if the restaurant passes every active filter value.
@@ -217,14 +294,50 @@
   }
 
   CE.search = {
-    // Returns all matching restaurants, alphabetically sorted.
+    // Returns all matching restaurants, name matches first, then
+    // alphabetical.
     // filters: { cuisine: string|null, campus: string|null, area: string|null }
-    run: function (query, filters) {
-      var corpora = {};
-      D.restaurants.forEach(function (r) { corpora[r.id] = corpus(r); });
-      return D.restaurants.filter(function (r) {
-        return matchesQuery(corpora[r.id], query) && matchesFilters(r, filters);
-      }).slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    run: function (query, filters) { return CE.search.find(query, filters).results; },
+
+    // Returns { results, closeMatch }. A unit that matches no restaurant
+    // exactly is matched with typo tolerance instead (closeMatch: true), so
+    // fuzzy matches never crowd out exact ones. If a multi-word query still
+    // finds nothing, it's tried as one squashed word ("jay dawgs" ->
+    // "jaydawgs").
+    find: function (query, filters) {
+      var idx = {};
+      D.restaurants.forEach(function (r) { idx[r.id] = index(r); });
+      var closeMatch = false;
+      function matchAll(us) {
+        closeMatch = false;
+        var plan = us.map(function (u) {
+          var exact = D.restaurants.some(function (r) { return unitMatches(idx[r.id], u); });
+          if (!exact) closeMatch = true;
+          return { u: u, test: exact ? unitMatches : fuzzyMatches };
+        });
+        return D.restaurants.filter(function (r) {
+          return matchesFilters(r, filters) &&
+            plan.every(function (p) { return p.test(idx[r.id], p.u); });
+        });
+      }
+      var us = norm(query) ? units(query) : [];
+      var results = matchAll(us);
+      if (!results.length && us.length > 1) results = matchAll([us.join("")]);
+      // Restaurants whose name matches come first ("roni" -> Roni's before
+      // Aloha Plate's macaroni salad), then alphabetical.
+      var q = squash(norm(query)), fq = fold(norm(query));
+      function byName(r) {
+        var n = squash(norm(r.name));
+        if (!q) return 1;
+        if (n.indexOf(q) !== -1) return 0;
+        var k = typosAllowed(fq.length), fn = fold(n);
+        if (!k) return 1;
+        return distance(fq, fn, k) <= k || distance(fq, fn.slice(0, fq.length), k) <= k ? 0 : 1;
+      }
+      results.sort(function (a, b) {
+        return byName(a) - byName(b) || a.name.localeCompare(b.name);
+      });
+      return { results: results, closeMatch: closeMatch && results.length > 0 };
     }
   };
 })();

@@ -102,12 +102,9 @@
   CE.cuisineNames = function (r) {
     return r.cuisine.map(function (k) { return byKey(D.cuisines, k).name; });
   };
-  CE.locationName = function (r) {
-    if (r.campus === "on") {
-      return byKey(D.locations, "on-campus").name + " › " + byKey(D.campusAreas, r.area).name;
-    }
-    return byKey(D.locations, r.area).name;
-  };
+  CE.area = function (r) { return byKey(D.areas, r.area); };
+  // Area labels already say (On Campus) / (Off Campus).
+  CE.locationName = function (r) { return CE.area(r).name; };
 
   // ----------------------------------------------------------------- trees
   function leaves(filter) {
@@ -131,11 +128,14 @@
     key: "food",
     name: "Browse by Food Type",
     short: "Food type",
-    blurb: "Pick what you're hungry for, then on or near campus.",
+    blurb: "Pick what you're hungry for, then on or off campus.",
+    // childLabel names the chip row of a node's children on browse steps.
+    childLabel: "Food type",
     children: D.cuisines.map(function (c) {
       return {
         key: c.key,
         name: c.name,
+        childLabel: "On or off campus",
         children: D.campus.map(function (cp) {
           return {
             key: cp.key,
@@ -153,25 +153,23 @@
     key: "place",
     name: "Browse by Location",
     short: "Location",
-    blurb: "Pick where you are, then a restaurant there.",
-    children: D.locations.map(function (l) {
-      if (l.campus === "on") {
-        return {
-          key: l.key,
-          name: l.name,
-          children: D.campusAreas.map(function (a) {
-            return {
-              key: a.key,
-              name: a.name,
-              children: leaves(function (r) { return r.campus === "on" && r.area === a.key; })
-            };
-          }).filter(function (n) { return keepOrReport("Browse by Location › " + l.name, n); })
-        };
-      }
+    blurb: "Pick on or off campus, then the area you're in.",
+    // The home card shows On / Off Campus as groups of area links.
+    grouped: true,
+    childLabel: "On or off campus",
+    children: D.campus.map(function (cp) {
       return {
-        key: l.key,
-        name: l.name,
-        children: leaves(function (r) { return r.campus === "near" && r.area === l.key; })
+        key: cp.key,
+        name: cp.name,
+        childLabel: "Area",
+        children: D.areas.filter(function (a) { return a.campus === cp.key; }).map(function (a) {
+          return {
+            key: a.key,
+            name: a.name,
+            desc: a.desc,
+            children: leaves(function (r) { return r.campus === cp.key && r.area === a.key; })
+          };
+        }).filter(function (n) { return keepOrReport("Browse by Location › " + cp.name, n); })
       };
     }).filter(function (n) { return keepOrReport("Browse by Location", n); })
   };

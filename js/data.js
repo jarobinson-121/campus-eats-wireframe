@@ -34,42 +34,53 @@ window.CE_DATA = {
     { key: "healthy", name: "Healthy" },
     // Added from the raw sorts: Cafe (sorts 4 and 8), Hawaiian and BBQ
     // (sort 4 each). Roni's, The Blue Line and J Dawgs got no cuisine label
-    // from any sorter, so they stay Location-only rather than going in a Misc.
+    // from any sorter; after testing they were fitted to the closest type
+    // (J Dawgs -> Burgers; Roni's and The Blue Line -> Cafe & Bakery) so
+    // Food Type reaches them too.
     { key: "hawaiian", name: "Hawaiian" },
     { key: "bbq", name: "BBQ" },
-    { key: "cafe", name: "Cafe" }
+    { key: "cafe", name: "Cafe & Bakery" }
   ],
 
-  // Level 2 of the cuisine view. BYU / not-BYU appeared in 5 of 14 sorts;
-  // the report calls it a lower-level filter, not a top-level category.
+  // Level 2 of the cuisine view, and level 1 of the location view.
+  // BYU / not-BYU appeared in 5 of 14 sorts. Testers confused "near" with
+  // "on", so the label says Off Campus (the key stays "near" so old routes
+  // and click logs still resolve).
   campus: [
     { key: "on", name: "On Campus" },
-    { key: "near", name: "Near Campus" }
+    { key: "near", name: "Off Campus" }
   ],
 
   // ---------------------------------------------------------------- view 2
-  // Location — second trend (~6 of 14 sorts). L1 labels from the report.
-  // On Campus has L2 areas using sort 1's own words ("Cougareat",
-  // "North Campus", ...). The off-campus directions go straight to
-  // restaurants.
-  locations: [
-    { key: "on-campus", name: "On Campus", campus: "on" },
-    { key: "north", name: "North of Campus", campus: "near" },
-    { key: "west", name: "West of Campus", campus: "near" },
-    { key: "east", name: "East of Campus", campus: "near" },
-    { key: "south", name: "South of Campus", campus: "near" }
-  ],
-  campusAreas: [
-    { key: "cougareat", name: "Cougareat" },
-    { key: "north-campus", name: "North Campus" },
-    { key: "south-campus", name: "South Campus" },
-    { key: "east-campus", name: "East Campus" },
-    { key: "west-campus", name: "West Campus" }
+  // Location — second trend (~6 of 14 sorts): On Campus / Off Campus, then
+  // an area. On-campus areas use sort 1's own words ("Cougareat", "North
+  // Campus", ...). Every label carries (On Campus) / (Off Campus) because
+  // testers mixed up "South Campus" and "South of Campus"; desc is a short
+  // landmark line drawn from the addresses in details.
+  areas: [
+    { key: "cougareat", campus: "on", name: "Cougareat (On Campus)",
+      desc: "Food court in the Wilkinson Student Center" },
+    { key: "north-campus", campus: "on", name: "North Campus (On Campus)",
+      desc: "Library, Tanner Building & Museum of Art" },
+    { key: "south-campus", campus: "on", name: "South Campus (On Campus)",
+      desc: "Engineering Building & Eyring Science Center" },
+    { key: "east-campus", campus: "on", name: "East Campus (On Campus)",
+      desc: "Along 900 East, by the Creamery" },
+    { key: "west-campus", campus: "on", name: "West Campus (On Campus)",
+      desc: "Student Athlete Building" },
+    { key: "north", campus: "near", name: "North of Campus (Off Campus)",
+      desc: "University Pkwy & Freedom Blvd, around 1700 N" },
+    { key: "west", campus: "near", name: "West of Campus (Off Campus)",
+      desc: "Cougar Blvd (1230 N) & Canyon Rd" },
+    { key: "east", campus: "near", name: "East of Campus (Off Campus)",
+      desc: "900 East & Campus Plaza" },
+    { key: "south", campus: "near", name: "South of Campus (Off Campus)",
+      desc: "700 East, around 800 N" }
   ],
 
   // ------------------------------------------------------------- the blocks
   // campus: "on" | "near"
-  // area:   a campusAreas key when on campus, a locations key when near
+  // area:   an areas key on the same side of campus
   restaurants: [
     { id: "aloha-plate", name: "Aloha Plate", cuisine: ["hawaiian"], campus: "on", area: "cougareat", verified: false },
     { id: "byu-creamery", name: "BYU Creamery", cuisine: ["burgers"], campus: "on", area: "east-campus", verified: false },
@@ -85,7 +96,7 @@ window.CE_DATA = {
     { id: "el-tio", name: "El Tio Tacos & More", cuisine: ["mexican"], campus: "near", area: "north", verified: false },
     { id: "greenhouse", name: "Greenhouse Salad Co.", cuisine: ["healthy"], campus: "near", area: "west", verified: false },
     { id: "harveys", name: "Harvey's", cuisine: ["burgers"], campus: "on", area: "south-campus", verified: false },
-    { id: "j-dawgs", name: "J Dawgs", cuisine: [], campus: "near", area: "south", verified: false },
+    { id: "j-dawgs", name: "J Dawgs", cuisine: ["burgers"], campus: "near", area: "south", verified: false },
     { id: "jamba", name: "Jamba", cuisine: ["healthy"], campus: "on", area: "north-campus", verified: false },
     { id: "konala", name: "Konala", cuisine: ["healthy", "hawaiian"], campus: "near", area: "west", verified: false },
     { id: "legends-grille", name: "Legends Grille", cuisine: ["bbq"], campus: "on", area: "west-campus", verified: false },
@@ -95,13 +106,13 @@ window.CE_DATA = {
     { id: "papa-johns", name: "Papa John's", cuisine: ["pizza"], campus: "on", area: "cougareat", verified: false },
     { id: "pendulum-court", name: "Pendulum Court Cafe", cuisine: ["cafe"], campus: "on", area: "south-campus", verified: false },
     { id: "raising-canes", name: "Raising Cane's", cuisine: ["chicken"], campus: "near", area: "west", verified: false },
-    { id: "ronis", name: "Roni's Mac Bar", cuisine: [], campus: "near", area: "west", verified: false },
+    { id: "ronis", name: "Roni's Mac Bar", cuisine: ["cafe"], campus: "near", area: "west", verified: false },
     { id: "sage-pizza", name: "Sage Pizza", cuisine: ["pizza"], campus: "near", area: "east", verified: false },
     { id: "shirleys", name: "Shirley's Bakery & Cafe", cuisine: ["cafe"], campus: "near", area: "north", verified: false },
     { id: "steak-express", name: "Steak Express", cuisine: ["bbq"], campus: "near", area: "east", verified: false },
     { id: "subway", name: "Subway", cuisine: ["healthy"], campus: "on", area: "east-campus", verified: false },
     { id: "teri-gao", name: "Teri Gao Asian Cafe", cuisine: ["asian"], campus: "near", area: "west", verified: false },
-    { id: "blue-line", name: "The Blue Line", cuisine: [], campus: "on", area: "north-campus", verified: false },
+    { id: "blue-line", name: "The Blue Line", cuisine: ["cafe"], campus: "on", area: "north-campus", verified: false },
     { id: "taco-spot", name: "The Taco Spot", cuisine: ["mexican"], campus: "near", area: "west", verified: false },
     { id: "wendys", name: "Wendy's", cuisine: ["burgers"], campus: "on", area: "cougareat", verified: false },
     { id: "y-mountain-bbq", name: "Y Mountain BBQ", cuisine: ["bbq"], campus: "on", area: "cougareat", verified: false }

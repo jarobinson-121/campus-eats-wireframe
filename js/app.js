@@ -480,7 +480,7 @@
         infoCard("Hours", info.hours) +
         infoCard("Menu highlights", info.menu,
           info.menuUrl ?
-            '<a class="infocard__link" href="' + CE.esc(info.menuUrl) + '" target="_blank" rel="noopener" data-kind="menu" data-label="Menu: ' +
+            '<a class="btn btn--accent" href="' + CE.esc(info.menuUrl) + '" target="_blank" rel="noopener" data-kind="menu" data-label="Menu: ' +
               CE.esc(rest.name) + '">' + CE.esc(info.menuLabel || "Full menu") + " ↗</a>" :
             '<p class="infocard__none">No online menu found.</p>') +
         '<div class="infocard infocard--where"><h3 class="infocard__h">Where</h3>' +

@@ -134,7 +134,7 @@
     key: "food",
     name: "Browse by Food Type",
     short: "Food type",
-    blurb: "Pick what you're hungry for, then on or off campus.",
+    blurb: "Pick what you're hungry for.",
     // childLabel names the chip row of a node's children on browse steps.
     childLabel: "Food type",
     children: D.cuisines.map(function (c) {

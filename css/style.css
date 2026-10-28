@@ -179,8 +179,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .crumbs span[aria-current] { color: var(--ink); font-weight: 500; }
 
 /* ----------------------------------------------------------------- home */
-.hero { padding: 40px 0 36px; }
-.hero__title { font-family: var(--font-display); font-weight: 800; letter-spacing: -.01em; font-size: clamp(40px, 5vw, 46px); line-height: 1.02; margin: 0 0 16px; max-width: 14ch; }   /* capped so the search and cards lead on wide screens */
+.hero { padding: 28px 0 26px; }
+.hero__title { font-family: var(--font-display); font-weight: 800; letter-spacing: -.01em; font-size: clamp(32px, 4vw, 38px); line-height: 1.04; margin: 0 0 12px; max-width: 14ch; }   /* capped so the search and cards lead on wide screens */
 /* A hand-drawn highlighter stroke behind "Let's find food.": an arched,
    wobbly SVG swipe (with a lighter second pass and a flick where the pen
    lifts) used as a mask over a soft tint of the accent, tilted a hair, so
@@ -202,7 +202,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
           mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 70' preserveAspectRatio='none'%3E%3Cpath fill-opacity='.8' d='M8 13 C30 8 62 5 104 4 C150 2 196 2 242 3 C288 5 330 8 362 12 C378 14 390 16 396 19 C391 27 398 35 392 43 C395 50 388 56 382 61 C350 58 314 56 272 55 C226 54 180 55 134 58 C96 60 58 64 30 66 C20 67 12 66 6 64 C10 56 3 47 8 38 C2 30 10 22 6 18 C7 16 7 14 8 13 Z'/%3E%3Cpath fill-opacity='.35' d='M18 32 C70 24 140 19 214 19 C280 19 340 24 386 32 L385 39 C338 32 280 28 214 28 C146 28 80 33 20 41 Z'/%3E%3Cpath fill-opacity='.55' d='M380 11 C389 13 396 15 400 18 L398 21 C393 18 387 16 380 14 Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
   transform: rotate(-1.5deg) skewX(-5deg);
 }
-.hero__lede { font-size: 19px; color: var(--muted); margin: 0; max-width: 46ch; }
+.hero__lede { font-size: 17px; color: var(--muted); margin: 0; max-width: 46ch; }
 /* Browse steps: a compact header naming where you are, so the tabs,
    columns and cards sit higher on the screen. */
 .hero--step { padding: 12px 0 16px; }
@@ -857,9 +857,9 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .topbar__home { font-size: 20px; }
   .topbar__util a, .devmenu > summary { padding: 6px 8px; }
   h1 { font-size: 28px; }
-  .hero { padding: 20px 0 28px; }
+  .hero { padding: 16px 0 22px; }
   .hero--step { padding: 8px 0 12px; }   /* after .hero, so the compact header wins */
-  .hero__lede { font-size: 17px; }
+  .hero__lede { font-size: 16px; }
   .doors { grid-template-columns: 1fr; }
   .door__head { padding: 18px; }
   .door__opts { padding: 0 18px 18px; }

@@ -99,11 +99,13 @@
 
   // A door's row of shortcut links, one per child of the node at the end of
   // trail.
+  // On home the group heading already says On / Off Campus, so the chips drop
+  // the "(On Campus)" tag; the click log keeps the full name.
   function opts(children, trail) {
     return '<ul class="door__opts">' + children.map(function (c) {
       return '<li><a class="opt" href="' + CE.hrefFor(trail.concat([c]), trail.length) + '" data-kind="tile" data-label="' +
         CE.esc(c.name) + ' (home shortcut)"' + (c.desc ? ' title="' + CE.esc(c.desc) + '"' : "") + ">" +
-        '<span class="opt__label">' + CE.esc(c.name) + "</span></a></li>";
+        '<span class="opt__label">' + CE.esc(c.name.replace(/\s*\((On|Off) Campus\)$/, "")) + "</span></a></li>";
     }).join("") + "</ul>";
   }
 
@@ -125,12 +127,12 @@
           '<span class="door__sub">' + CE.esc(v.blurb) + "</span></span>" +
           '<span class="door__arrow" aria-hidden="true">→</span>' +
         "</a>" +
-        (v.grouped ? v.children.map(function (g) {
+        (v.grouped ? '<div class="door__groups">' + v.children.map(function (g) {
           return '<div class="door__group">' +
             '<a class="door__grouphead" href="' + CE.hrefFor([v, g], 1) + '" data-kind="tile" data-label="' +
               CE.esc(g.name) + ' (home shortcut)">' + CE.esc(g.name) + "</a>" +
             opts(g.children, [v, g]) + "</div>";
-        }).join("") : opts(v.children, [v])) +
+        }).join("") + "</div>" : opts(v.children, [v])) +
         "</li>";
     }).join("");
     return '<ul class="doors">' + doors + "</ul>";

@@ -260,7 +260,12 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   gap: 8px;
 }
 /* The location door: On Campus / Off Campus, each with its areas. */
-.door__group + .door__group { margin-top: -8px; }
+/* On Campus and Off Campus side by side, a rule between them. */
+.door__groups { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; padding: 0 24px 24px; }
+.door__group + .door__group { padding-left: 20px; border-left: 1px solid var(--line); }
+.door__groups .door__grouphead,
+.door__groups .door__opts { padding-left: 0; padding-right: 0; }
+.door__groups .door__opts { padding-bottom: 0; }
 .door__grouphead {
   display: block;
   padding: 0 24px 8px;
@@ -856,6 +861,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .door__head { padding: 18px; }
   .door__opts { padding: 0 18px 18px; }
   .door__grouphead { padding: 0 18px 8px; }
+  .door__groups { padding: 0 18px 18px; gap: 0 14px; }
+  .door__group + .door__group { padding-left: 14px; }
 
   .tabs { display: flex; width: 100%; }
   .tab { flex: 1; justify-content: center; padding: 8px 10px; font-size: 14px; }

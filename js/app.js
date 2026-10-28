@@ -295,7 +295,6 @@
       (heading ?
         '<section class="hero hero--step"><h1 class="hero__title">' + CE.esc(heading) + "</h1></section>" :
         '<section class="hero">' +
-          '<p class="hero__eyebrow">BYU \u00b7 Provo</p>' +
           "<h1 class=\"hero__title\">Hungry? <span class=\"hl\">Let's find food.</span></h1>" +
           '<p class="hero__lede">' + CE.esc(D.tagline) + " Pick a way to look.</p>" +
         "</section>") +

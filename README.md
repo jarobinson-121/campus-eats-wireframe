@@ -34,7 +34,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 ## Pages
 
 - `#/`: home, with both ways in
-- `#/food/...` and `#/place/...`: browse; a restaurant page shows "You selected: X"
+- `#/food/...` and `#/place/...`: browse, ending on a restaurant page
 - `#/map`: site map of both views
 - `#/check`: coverage check (every restaurant reachable? empty categories? tasks valid?)
 - `#/log`: click log, with Download JSON / CSV and Copy

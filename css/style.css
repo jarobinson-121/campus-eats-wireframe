@@ -617,7 +617,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 }
 .rest__photo.photo--contain { padding: 20px; }
 .rest__photo.photo--none { height: 140px; font-size: 48px; }
-.rest__photo + .rest__hero { border-radius: 0 0 var(--radius) var(--radius); }
+.rest__photo ~ .rest__hero { border-radius: 0 0 var(--radius) var(--radius); }
 
 .dishes {
   list-style: none;
@@ -638,7 +638,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .dish__cap { display: block; padding: 8px 12px 10px; font-size: 14px; font-weight: 600; }
 .finesrc a { color: inherit; text-decoration: underline; }
 
-.rest__label { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 .rest__name { width: fit-content; margin: 0 0 10px; font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1.05; }
 .tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .tag { padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--main-ink) 18%, transparent); font-size: 13px; font-weight: 500; }
@@ -671,17 +670,6 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 
 .section-h { font-size: 17px; font-weight: 800; margin: 28px 0 10px; }
 .finesrc { font-size: 12px; color: var(--muted); margin: 0 0 16px; }
-.restend {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin: 8px 0 24px;
-  padding-top: 20px;
-  border-top: 1px solid var(--line);
-}
-.restend__sub { font-weight: 500; opacity: .8; margin-left: 4px; }
-.restend__sub::before { content: "\00b7\00a0"; }
 
 /* ------------------------------------------------------------- site map */
 .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }

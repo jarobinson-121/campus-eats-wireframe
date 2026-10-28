@@ -23,11 +23,6 @@
     if (!devmenu.open) return;
     if (!devmenu.contains(e.target) || e.target.closest(".devmenu__panel a")) devmenu.open = false;
   });
-  // "Start over" goes home with an empty search box.
-  document.addEventListener("click", function (e) {
-    if (e.target.closest("[data-clear-search]")) CE.clearSearch();
-  });
-
   // One filter-token menu open at a time; a click elsewhere or Escape
   // closes it.
   document.addEventListener("click", function (e) {
@@ -432,23 +427,7 @@
     onePage(
       viewTabs(viaSearch ? null : r.view) +
       (viaSearch ? searchCrumbs(r) : crumbs(r.trail)) +
-      '<div class="restpage">' + detail(r) + restEnd(r) + "</div>", r.node.name);
-  }
-
-  // The page ends with a clear way on: back to the list this restaurant was
-  // picked from (search results or the browse list), or start over.
-  function restEnd(r) {
-    var parent = r.trail.slice(0, -1);
-    var back = viaSearch ?
-      { href: "#/", label: "Back to search results", sub: "\u201c" + viaSearch + "\u201d" } :
-      { href: CE.hrefFor(parent, parent.length - 1), label: "Back to results", sub: trailName(parent) };
-    return '<nav class="restend" aria-label="Where to next">' +
-      '<a class="btn btn--big restend__back" href="' + back.href + '" data-kind="nav" data-label="' + back.label + '">' +
-        '<span aria-hidden="true">\u2190</span> ' + back.label +
-        (back.sub ? '<span class="restend__sub">' + CE.esc(back.sub) + "</span>" : "") +
-      "</a>" +
-      '<a class="btn" href="#/" data-clear-search data-kind="nav" data-label="Start over">Start over</a>' +
-    "</nav>";
+      '<div class="restpage">' + detail(r) + "</div>", r.node.name);
   }
 
   function detail(r) {
@@ -467,7 +446,6 @@
       photo(rest, "rest__photo") +
       '<div class="rest__hero" role="status">' +
         "<div>" +
-          '<p class="rest__label">You selected</p>' +
           '<p class="rest__name">' + CE.esc(rest.name) + "</p>" +
           '<ul class="tags">' +
             cuisines.map(function (n) { return '<li class="tag">' + CE.esc(n) + "</li>"; }).join("") +

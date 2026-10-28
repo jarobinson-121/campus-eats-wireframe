@@ -524,6 +524,47 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .rcard { position: relative; }
 .rcard__go { position: absolute; top: 16px; right: 18px; color: var(--main); font-size: 20px; opacity: 0; transform: translateX(-6px); transition: all .2s var(--ease); }
 .rcard:hover .rcard__go { opacity: 1; transform: none; }
+/* Photo across the top of the card, edge to edge. */
+.rcard__img {
+  display: block;
+  width: calc(100% + 36px);
+  aspect-ratio: 16 / 9;
+  margin: -18px -18px 14px;
+  object-fit: cover;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.rcard__go { z-index: 1; padding: 0 8px; border-radius: 999px; background: var(--surface); }
+/* Logos and cut-out product shots show whole, on the card colour. */
+.photo--contain { object-fit: contain; padding: 10px; box-sizing: border-box; }
+/* Labels a stock dish photo on a card or restaurant page. */
+.rest { position: relative; }
+.photo__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  box-shadow: var(--shadow);
+}
+/* No photo found: initials on a soft tint. */
+.photo--none {
+  display: grid;
+  place-items: center;
+  background: var(--main-soft);
+  color: var(--main);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 34px;
+  letter-spacing: .02em;
+}
 .rcard__name { align-self: flex-start; font-family: var(--font-display); font-size: 20px; font-weight: 800; line-height: 1.2; margin: 0 0 4px; }
 .rcard__meta { font-size: 14px; color: var(--muted); }
 .rcard__hours {
@@ -549,6 +590,40 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+/* The photo sits on top of the blue name band as one block. */
+.rest__photo {
+  display: block;
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.rest__photo.photo--contain { padding: 20px; }
+.rest__photo.photo--none { height: 140px; font-size: 48px; }
+.rest__photo + .rest__hero { border-radius: 0 0 var(--radius) var(--radius); }
+
+.dishes {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.dish {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+.dish__img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--surface); }
+.dish__cap { display: block; padding: 8px 12px 10px; font-size: 14px; font-weight: 600; }
+.finesrc a { color: inherit; text-decoration: underline; }
+
 .rest__label { margin: 0 0 2px; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 .rest__name { width: fit-content; margin: 0 0 10px; font-family: var(--font-display); font-size: 36px; font-weight: 800; line-height: 1.05; }
 .tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -791,6 +866,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
   .searchbar__input { font-size: 16px; } /* prevent iOS zoom */
   .rcards { grid-template-columns: 1fr; }
   .rest__hero { flex-direction: column; align-items: flex-start; padding: 22px; }
+  .rest__photo { height: 200px; }
+  .dishes { grid-template-columns: 1fr 1fr; }
   .rest__name { font-size: 30px; }
   .card { padding: 20px; }
   .card__scenario { font-size: 20px; }

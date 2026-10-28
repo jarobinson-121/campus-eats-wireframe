@@ -72,6 +72,21 @@
     return '<nav class="crumbs" aria-label="Breadcrumb">' + parts.join('<span class="crumbs__sep">›</span>') + "</nav>";
   }
 
+  // A restaurant's photo, or a placeholder with its initials when none was
+  // found. cls sizes it (rcard__img on cards, rest__photo on its page).
+  function photo(rest, cls) {
+    var p = D.photos && D.photos[rest.id];
+    if (!p) {
+      var initials = rest.name.replace(/^The /, "").split(/\s+/).slice(0, 2)
+        .map(function (w) { return w.charAt(0); }).join("").toUpperCase();
+      return '<div class="' + cls + ' photo--none" aria-hidden="true"><span>' + CE.esc(initials) + "</span></div>";
+    }
+    return '<img class="' + cls + (p.fit === "contain" ? " photo--contain" : "") + '" src="' + CE.esc(p.hero) +
+      '" alt="' + CE.esc(p.alt) + '" loading="lazy">' +
+      // Stock dish photos say so, so nobody takes them for the real place.
+      (p.generic ? '<span class="photo__badge">Representative photo</span>' : "");
+  }
+
   function subFor(node) {
     if (!node.children) return "";
     return (node.desc ? node.desc + " \u00b7 " : "") + CE.plural(CE.countLeaves(node), "restaurant", "restaurants");
@@ -154,6 +169,7 @@
       "?q=" + encodeURIComponent(searchState.query) : "#/";
     var hours = info.hours && info.hours.length ? info.hours[0] : "Hours not listed yet";
     return '<li><a class="rcard" href="' + href + '" data-kind="tile" data-label="' + CE.esc(r.name) + ' (search result)">' +
+      photo(r, "rcard__img") +
       '<span class="rcard__go" aria-hidden="true">\u2192</span>' +
       '<span class="rcard__name">' + CE.esc(r.name) + "</span>" +
       '<span class="rcard__meta">' + CE.esc(cuisines.length ? cuisines.join(", ") : "Something different") + "</span>" +
@@ -383,6 +399,7 @@
         var cuisines = CE.cuisineNames(rest);
         var info = CE.details(rest.id);
         return '<li><a class="rcard" href="' + here + "/" + c.key + '" data-kind="tile" data-label="' + CE.esc(c.name) + '">' +
+          photo(rest, "rcard__img") +
           '<span class="rcard__go" aria-hidden="true">→</span>' +
           '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
           '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
@@ -436,7 +453,9 @@
     // Maps search on the name plus address; opens outside the prototype.
     var mapsUrl = "https://www.google.com/maps/search/?api=1&query=" +
       encodeURIComponent(rest.name + ", " + (info.where || "") + ", Provo, UT");
+    var pics = (D.photos && D.photos[rest.id]) || {};
     return '<section class="rest">' +
+      photo(rest, "rest__photo") +
       '<div class="rest__hero" role="status">' +
         "<div>" +
           '<p class="rest__label">You selected</p>' +
@@ -461,6 +480,11 @@
         "</div>" +
       "</div>" +
       (info.note ? '<p class="callout">' + CE.esc(info.note) + "</p>" : "") +
+      (pics.dishes && pics.dishes.length ?
+        '<h3 class="section-h">From the menu</h3><ul class="dishes">' + pics.dishes.map(function (d) {
+          return '<li class="dish"><img class="dish__img' + (pics.fit === "contain" ? " photo--contain" : "") + '" src="' + CE.esc(d.src) + '" alt="' + CE.esc(d.caption) + '" loading="lazy">' +
+            '<span class="dish__cap">' + CE.esc(d.caption) + "</span></li>";
+        }).join("") + "</ul>" : "") +
       (elsewhere.length ?
         '<h3 class="section-h">Also listed under</h3><ul class="chips">' + elsewhere.map(function (t) {
           // Chip names the categories only; the view name is implied by them.
@@ -469,6 +493,13 @@
             CE.esc(tag) + '">' + CE.esc(tag) + "</a></li>";
         }).join("") + "</ul>" : "") +
       (info.source ? '<p class="finesrc">Source: ' + CE.esc(info.source) + ", checked October 2026 · ID " + CE.esc(rest.id) + "</p>" : "") +
+      (pics.credits ? '<p class="finesrc">Representative photos from Wikimedia Commons, not taken at this restaurant: ' +
+        pics.credits.map(function (c) {
+          return '<a href="' + CE.esc(c.url) + '" target="_blank" rel="noopener" data-kind="credit" data-label="Photo credit: ' +
+            CE.esc(rest.name) + '">' + CE.esc(c.caption) + "</a> by " + CE.esc(c.author) + " (" + CE.esc(c.license) + ")";
+        }).join(" \u00b7 ") + "</p>" : "") +
+      (pics.credit ? '<p class="finesrc">Photos: <a href="' + CE.esc(pics.creditUrl) + '" target="_blank" rel="noopener" data-kind="credit" data-label="Photo credit: ' +
+        CE.esc(rest.name) + '">' + CE.esc(pics.credit) + " \u2197</a></p>" : "") +
       "</section>";
   }
 

@@ -335,6 +335,341 @@ window.CE_DATA = {
       menuLabel: "Menu in BYU's nutrition lookup (pick Y Mountain BBQ)" }
   },
 
+  // Restaurant photos, from each restaurant's own site or ordering page
+  // (October 2026), credited on the restaurant page. Files live in
+  // img/restaurants/<id>/. fit: "contain" shows a logo or cut-out photo
+  // whole instead of cropping it. Restaurants without an entry show a
+  // placeholder.
+  //
+  // generic: true marks restaurants with no official photo. Their pictures
+  // are freely licensed dish photos from Wikimedia Commons, shown with a
+  // "Representative photo" badge and credited one by one (credits).
+  photos: {
+    "blue-line": {
+      hero: "img/restaurants/blue-line/hero.jpg",
+      alt: "Deli sandwich (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/blue-line/dish-1.jpg", caption: "Soup in a bread bowl" },
+        { src: "img/restaurants/blue-line/dish-2.jpg", caption: "Breakfast burrito" }
+      ],
+      credits: [
+        { caption: "Deli sandwich", author: "Jeff", license: "CC BY-SA 2.0", url: "https://commons.wikimedia.org/wiki/File:Ben%27s_Best_Deli_Rego_Park_pastrami_sandwich.jpg" },
+        { caption: "Soup in a bread bowl", author: "Prayitno", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Bread_Bowl_%26_Clam_Chowder_Soup_(29842842338).jpg" },
+        { caption: "Breakfast burrito", author: "Cajsa Lilliehook", license: "CC BY-SA 2.0", url: "https://commons.wikimedia.org/wiki/File:Bacon_Kale_Breakfast_Burrito_(8429773809).jpg" }
+      ]
+    },
+    "blue-sushi": {
+      hero: "img/restaurants/blue-sushi/hero.jpg",
+      alt: "Dragon roll (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/blue-sushi/dish-1.jpg", caption: "Sushi rolls" }
+      ],
+      credits: [
+        { caption: "Dragon roll", author: "Geoff Peters", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Double_dragon_roll_(3432813605).jpg" },
+        { caption: "Sushi rolls", author: "Stacy", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Homemade_sushi_rolls,_2009.jpg" }
+      ]
+    },
+    "don-joaquin": {
+      hero: "img/restaurants/don-joaquin/hero.jpg",
+      alt: "Street tacos (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/don-joaquin/dish-1.jpg", caption: "Asada fries" }
+      ],
+      credits: [
+        { caption: "Street tacos", author: "T.Tseng", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Tacos_al_pastor,_taco_de_panza.jpg" },
+        { caption: "Asada fries", author: "RightCowLeftCoast", license: "CC BY 4.0", url: "https://commons.wikimedia.org/wiki/File:Carne_asada_fries_-_October_2024.jpg" }
+      ]
+    },
+    "el-tio": {
+      hero: "img/restaurants/el-tio/hero.jpg",
+      alt: "Birria tacos (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/el-tio/dish-1.jpg", caption: "Shrimp tacos" },
+        { src: "img/restaurants/el-tio/dish-2.jpg", caption: "Horchata" }
+      ],
+      credits: [
+        { caption: "Birria tacos", author: "T.Tseng", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Birria_tacos_from_Teddy%27s_Red_Tacos,_Venice_CA.jpg" },
+        { caption: "Shrimp tacos", author: "Missvain", license: "CC BY 4.0", url: "https://commons.wikimedia.org/wiki/File:Shrimp_tacos_at_Casa_Del_Sol_-_2021-08-24_-_Sarah_Stierch.jpg" },
+        { caption: "Horchata", author: "Photocapy", license: "CC BY-SA 2.0", url: "https://commons.wikimedia.org/wiki/File:Horchata_de_chufa_2.jpg" }
+      ]
+    },
+    "legends-grille": {
+      hero: "img/restaurants/legends-grille/hero.jpg",
+      alt: "Barbecue plate (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/legends-grille/dish-1.jpg", caption: "Buffet line" },
+        { src: "img/restaurants/legends-grille/dish-2.jpg", caption: "Brisket and ribs" }
+      ],
+      credits: [
+        { caption: "Barbecue plate", author: "Gatorfan252525", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Plate_of_brisket,_BBQ_ribs,_pulled_pork,_South_Texas_beans_and_pickled_jalape%C3%B1os_from_the_Pinkerton%27s_BBQ_San_Antonio_location.jpg" },
+        { caption: "Buffet line", author: "Michael Ocampo", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Food_at_the_Courtyard_Buffet_-_2010_10.jpg" },
+        { caption: "Brisket and ribs", author: "T.Tseng", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Barbecue_plate_at_Black%27s_Barbecue.jpg" }
+      ]
+    },
+    "library-cafe": {
+      hero: "img/restaurants/library-cafe/hero.jpg",
+      alt: "Boba (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/library-cafe/dish-1.jpg", caption: "Rice bowl" }
+      ],
+      credits: [
+        { caption: "Boba", author: "Missvain", license: "CC BY 4.0", url: "https://commons.wikimedia.org/wiki/File:Thai_Iced_Bubble_Tea_-_Sonoma_Pho_-_Stierch_-_2019.jpg" },
+        { caption: "Rice bowl", author: "Andy Li", license: "CC0", url: "https://commons.wikimedia.org/wiki/File:Pork_Chashu_Rice_Bowl_(M)_-_Kitokito_2023-06-09.jpg" }
+      ]
+    },
+    "moa-cafe": {
+      hero: "img/restaurants/moa-cafe/hero.jpg",
+      alt: "Grilled cheese (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/moa-cafe/dish-1.jpg", caption: "Italian sandwich" },
+        { src: "img/restaurants/moa-cafe/dish-2.jpg", caption: "Tomato basil pasta" }
+      ],
+      credits: [
+        { caption: "Grilled cheese", author: "Sdkb", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Grilled_cheese_at_Mobtown_Ballroom.jpg" },
+        { caption: "Italian sandwich", author: "jeffreyw", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Submarine_sandwich_and_chips.jpg" },
+        { caption: "Tomato basil pasta", author: "Abi Porter", license: "CC BY 2.0", url: "https://commons.wikimedia.org/wiki/File:Tomato_and_basil_pasta_(4925750112).jpg" }
+      ]
+    },
+    "y-mountain-bbq": {
+      hero: "img/restaurants/y-mountain-bbq/hero.jpg",
+      alt: "Brisket and mac and cheese (representative photo)",
+      generic: true,
+      dishes: [
+        { src: "img/restaurants/y-mountain-bbq/dish-1.jpg", caption: "Smoked brisket" },
+        { src: "img/restaurants/y-mountain-bbq/dish-2.jpg", caption: "Pulled pork sandwich" },
+        { src: "img/restaurants/y-mountain-bbq/dish-3.jpg", caption: "Baby back ribs" }
+      ],
+      credits: [
+        { caption: "Brisket and mac and cheese", author: "Joditran", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Smoked_brisket_in_Sydney.jpg" },
+        { caption: "Smoked brisket", author: "Johnsparks75", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Smoked_Brisket_with_smoke_ring.jpg" },
+        { caption: "Pulled pork sandwich", author: "Infrogmation of New Orleans", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Pulled_pork_sandwich_-_%22Naked%22.jpg" },
+        { caption: "Baby back ribs", author: "Gunawan Kartapranata", license: "CC BY-SA 3.0", url: "https://commons.wikimedia.org/wiki/File:Balinese_Roasted_Pork_Ribs_-_Iga_Babi_Panggang_Bali.JPG" }
+      ]
+    },
+    "aloha-plate": {
+      hero: "img/restaurants/aloha-plate/hero.jpg",
+      alt: "Aloha Plate at the Cougareat",
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu"
+    },
+    "burgers-supreme": {
+      hero: "img/restaurants/burgers-supreme/hero.jpg",
+      alt: "Chili burger",
+      dishes: [
+        { src: "img/restaurants/burgers-supreme/dish-1.jpg", caption: "Chicken bacon ranch" }
+      ],
+      credit: "Burgers Supreme", creditUrl: "https://www.burgerssupreme.com"
+    },
+    "byu-creamery": {
+      hero: "img/restaurants/byu-creamery/hero.jpg",
+      alt: "The new Creamery on Ninth East",
+      dishes: [
+        { src: "img/restaurants/byu-creamery/dish-1.jpg", caption: "Ice cream" },
+        { src: "img/restaurants/byu-creamery/dish-2.jpg", caption: "Grill" }
+      ],
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu"
+    },
+    "chick-fil-a": {
+      hero: "img/restaurants/chick-fil-a/hero.jpg",
+      alt: "Chicken sandwich meal",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/chick-fil-a/dish-1.jpg", caption: "Chick-n-Strips" }
+      ],
+      credit: "Chick-fil-A", creditUrl: "https://www.chick-fil-a.com"
+    },
+    "choices": {
+      hero: "img/restaurants/choices/hero.jpg",
+      alt: "A Choices bowl",
+      dishes: [
+        { src: "img/restaurants/choices/dish-1.jpg", caption: "Double protein bowl" },
+        { src: "img/restaurants/choices/dish-2.jpg", caption: "Teriyaki bowl" },
+        { src: "img/restaurants/choices/dish-3.jpg", caption: "Grain bowl" }
+      ],
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu"
+    },
+    "costa-vida": {
+      hero: "img/restaurants/costa-vida/hero.jpg",
+      alt: "Sweet pork salad",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/costa-vida/dish-1.jpg", caption: "Burrito" },
+        { src: "img/restaurants/costa-vida/dish-2.jpg", caption: "Tacos" },
+        { src: "img/restaurants/costa-vida/dish-3.jpg", caption: "Enchiladas" }
+      ],
+      credit: "Costa Vida", creditUrl: "https://www.costavida.com"
+    },
+    "cougar-crust": {
+      hero: "img/restaurants/cougar-crust/hero.jpg",
+      alt: "Pepperoni pizza",
+      dishes: [
+        { src: "img/restaurants/cougar-crust/dish-1.jpg", caption: "Four cheese" },
+        { src: "img/restaurants/cougar-crust/dish-2.jpg", caption: "All meat" },
+        { src: "img/restaurants/cougar-crust/dish-3.jpg", caption: "Hawaiian" }
+      ],
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu"
+    },
+    "crazy-ds": {
+      hero: "img/restaurants/crazy-ds/hero.jpg",
+      alt: "Crazy D's Hot Chicken",
+      dishes: [
+        { src: "img/restaurants/crazy-ds/dish-1.jpg", caption: "Hot chicken sandwich" },
+        { src: "img/restaurants/crazy-ds/dish-2.jpg", caption: "Loaded fries" },
+        { src: "img/restaurants/crazy-ds/dish-3.jpg", caption: "Hot chicken" }
+      ],
+      credit: "Crazy D's Hot Chicken", creditUrl: "https://crazydshotchicken.com"
+    },
+    "cupbop": {
+      hero: "img/restaurants/cupbop/hero.jpg",
+      alt: "Cupbop trays",
+      dishes: [
+        { src: "img/restaurants/cupbop/dish-1.jpg", caption: "Cupbop" },
+        { src: "img/restaurants/cupbop/dish-2.jpg", caption: "K-wings" }
+      ],
+      credit: "Cupbop", creditUrl: "https://www.cupbop.com"
+    },
+    "greenhouse": {
+      hero: "img/restaurants/greenhouse/hero.jpg",
+      alt: "Greenhouse Salad Co. logo",
+      fit: "contain",
+      credit: "Greenhouse Salad Co.", creditUrl: "https://www.eatgreenhouse.com"
+    },
+    "harveys": {
+      hero: "img/restaurants/harveys/hero.jpg",
+      alt: "Harvey's",
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu"
+    },
+    "j-dawgs": {
+      hero: "img/restaurants/j-dawgs/hero.jpg",
+      alt: "A J Dawgs hot dog",
+      dishes: [
+        { src: "img/restaurants/j-dawgs/dish-1.jpg", caption: "Dogs with the special sauce" }
+      ],
+      credit: "J Dawgs", creditUrl: "https://jdawgs.com"
+    },
+    "jamba": {
+      hero: "img/restaurants/jamba/hero.jpg",
+      alt: "Jamba smoothies",
+      credit: "Jamba", creditUrl: "https://www.jamba.com"
+    },
+    "konala": {
+      hero: "img/restaurants/konala/hero.jpg",
+      alt: "Konala",
+      dishes: [
+        { src: "img/restaurants/konala/dish-1.jpg", caption: "Teriyaki chicken" },
+        { src: "img/restaurants/konala/dish-2.jpg", caption: "Greek bowl" },
+        { src: "img/restaurants/konala/dish-3.jpg", caption: "Honey sriracha chicken" }
+      ],
+      credit: "Konala", creditUrl: "https://konala.com"
+    },
+    "mo-bettahs": {
+      hero: "img/restaurants/mo-bettahs/hero.jpg",
+      alt: "Regular plate",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/mo-bettahs/dish-1.jpg", caption: "Mini plate" },
+        { src: "img/restaurants/mo-bettahs/dish-2.jpg", caption: "Ekolu plate" },
+        { src: "img/restaurants/mo-bettahs/dish-3.jpg", caption: "Pake salad" }
+      ],
+      credit: "Mo' Bettahs", creditUrl: "https://www.mobettahs.com"
+    },
+    "papa-johns": {
+      hero: "img/restaurants/papa-johns/hero.jpg",
+      alt: "Papa John's logo",
+      fit: "contain",
+      credit: "BYU Dining", creditUrl: "https://dining.byu.edu/cougareat"
+    },
+    "pendulum-court": {
+      hero: "img/restaurants/pendulum-court/hero.jpg",
+      alt: "Coconut chicken curry",
+      dishes: [
+        { src: "img/restaurants/pendulum-court/dish-1.jpg", caption: "French dip" },
+        { src: "img/restaurants/pendulum-court/dish-2.jpg", caption: "Chicken piccata" },
+        { src: "img/restaurants/pendulum-court/dish-3.jpg", caption: "Lemon baked salmon" }
+      ],
+      credit: "Pendulum Court (BYU)", creditUrl: "https://pencourt.byu.edu"
+    },
+    "raising-canes": {
+      hero: "img/restaurants/raising-canes/hero.jpg",
+      alt: "The Caniac Combo",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/raising-canes/dish-1.jpg", caption: "The Box Combo" },
+        { src: "img/restaurants/raising-canes/dish-2.jpg", caption: "3 Finger Combo" },
+        { src: "img/restaurants/raising-canes/dish-3.jpg", caption: "Sandwich Combo" }
+      ],
+      credit: "Raising Cane's", creditUrl: "https://www.raisingcanes.com"
+    },
+    "ronis": {
+      hero: "img/restaurants/ronis/hero.jpg",
+      alt: "Roni's mac and cheese",
+      credit: "Roni's Mac Bar", creditUrl: "https://ronismacbar.com"
+    },
+    "sage-pizza": {
+      hero: "img/restaurants/sage-pizza/hero.jpg",
+      alt: "Sage Pizza logo",
+      fit: "contain",
+      credit: "Sage Pizza", creditUrl: "https://www.sagepizza.org"
+    },
+    "shirleys": {
+      hero: "img/restaurants/shirleys/hero.jpg",
+      alt: "Seasonal salad",
+      dishes: [
+        { src: "img/restaurants/shirleys/dish-1.jpg", caption: "Chicken Caesar" },
+        { src: "img/restaurants/shirleys/dish-2.jpg", caption: "Chili" },
+        { src: "img/restaurants/shirleys/dish-3.jpg", caption: "Minestrone" }
+      ],
+      credit: "Shirley's Bakery & Cafe", creditUrl: "https://shirleysbakerycafe.com"
+    },
+    "steak-express": {
+      hero: "img/restaurants/steak-express/hero.jpg",
+      alt: "Steak Express",
+      credit: "Steak Express, via DoorDash", creditUrl: "https://www.doordash.com/store/steak-express-provo-1284714/"
+    },
+    "subway": {
+      hero: "img/restaurants/subway/hero.jpg",
+      alt: "Subway sandwiches",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/subway/dish-1.jpg", caption: "Wraps" },
+        { src: "img/restaurants/subway/dish-2.jpg", caption: "Protein bowls" },
+        { src: "img/restaurants/subway/dish-3.jpg", caption: "Soups" }
+      ],
+      credit: "Subway", creditUrl: "https://www.subway.com"
+    },
+    "taco-spot": {
+      hero: "img/restaurants/taco-spot/hero.jpg",
+      alt: "The Taco Spot",
+      dishes: [
+        { src: "img/restaurants/taco-spot/dish-1.jpg", caption: "Quesabirria taco" },
+        { src: "img/restaurants/taco-spot/dish-2.jpg", caption: "Surf and turf taco" },
+        { src: "img/restaurants/taco-spot/dish-3.jpg", caption: "Walking taco" }
+      ],
+      credit: "The Taco Spot", creditUrl: "https://order.online/store/TheTacoSpot-38412989"
+    },
+    "teri-gao": {
+      hero: "img/restaurants/teri-gao/hero.jpg",
+      alt: "Teri Gao Asian Cafe",
+      credit: "Teri Gao Asian Cafe", creditUrl: "https://order.mealkeyway.com/customer/release/index?mid=5534466a495856743039616d486f59676179374865673d3d"
+    },
+    "wendys": {
+      hero: "img/restaurants/wendys/hero.jpg",
+      alt: "Dave's Double",
+      fit: "contain",
+      dishes: [
+        { src: "img/restaurants/wendys/dish-1.jpg", caption: "Spicy chicken sandwich" },
+        { src: "img/restaurants/wendys/dish-2.jpg", caption: "Frosty" }
+      ],
+      credit: "Wendy's", creditUrl: "https://www.wendys.com"
+    }
+  },
+
   // ------------------------------------------------------- test scenarios
   // DRAFT — team to review. expect lists every restaurant that counts as a
   // correct answer. Scenarios avoid using the restaurant's name or the

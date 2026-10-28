@@ -161,6 +161,9 @@
     parts.push(norm(CE.locationName(r)));
     parts.push(norm(CE.area(r).desc));
     parts.push(r.campus === "on" ? "on campus" : "near campus off campus");
+    // Price words, so "cheap" or "budget" finds the $ places.
+    if (r.price === 1) parts.push("cheap budget affordable inexpensive");
+    if (r.price >= 2) parts.push("pricier");
     var det = CE.details(r.id);
     if (det.menu) det.menu.forEach(function (m) { parts.push(norm(m)); });
     if (det.where) parts.push(withoutOtherNames(norm(det.where), r));

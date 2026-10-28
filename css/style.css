@@ -572,6 +572,9 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 }
 .rcard__name { align-self: flex-start; font-family: var(--font-display); font-size: 20px; font-weight: 800; line-height: 1.2; margin: 0 0 4px; }
 .rcard__meta { font-size: 14px; color: var(--muted); }
+.price { font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.price::before { content: "\00a0\00b7\00a0"; font-weight: 400; color: var(--muted); }
+.tag--price { font-weight: 700; }
 .rcard__hours {
   margin-top: auto;
   padding-top: 14px;

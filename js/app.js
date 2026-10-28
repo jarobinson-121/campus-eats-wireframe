@@ -87,6 +87,13 @@
       (p.generic ? '<span class="photo__badge">Representative photo</span>' : "");
   }
 
+  // The $-$$$ marker that ends a card's meta line.
+  function priceMark(rest) {
+    var p = CE.price(rest);
+    return p ? '<span class="price" title="' + CE.esc(p.text) + '"><span class="vh">Price: </span>' + p.mark +
+      '<span class="vh"> (' + CE.esc(p.text) + ")</span></span>" : "";
+  }
+
   function subFor(node) {
     if (!node.children) return "";
     return (node.desc ? node.desc + " \u00b7 " : "") + CE.plural(CE.countLeaves(node), "restaurant", "restaurants");
@@ -174,7 +181,7 @@
       photo(r, "rcard__img") +
       '<span class="rcard__go" aria-hidden="true">\u2192</span>' +
       '<span class="rcard__name">' + CE.esc(r.name) + "</span>" +
-      '<span class="rcard__meta">' + CE.esc(cuisines.length ? cuisines.join(", ") : "Something different") + "</span>" +
+      '<span class="rcard__meta">' + CE.esc(cuisines.length ? cuisines.join(", ") : "Something different") + priceMark(r) + "</span>" +
       '<span class="rcard__loc">' + CE.esc(CE.locationName(r)) + "</span>" +
       '<span class="rcard__hours">' + CE.esc(hours) + "</span>" +
     "</a></li>";
@@ -405,7 +412,7 @@
           '<span class="rcard__go" aria-hidden="true">→</span>' +
           '<span class="rcard__name">' + CE.esc(rest.name) + "</span>" +
           '<span class="rcard__meta">' + CE.esc(byFood ? CE.locationName(rest) :
-            (cuisines.length ? cuisines.join(", ") : "Something different")) + "</span>" +
+            (cuisines.length ? cuisines.join(", ") : "Something different")) + priceMark(rest) + "</span>" +
           '<span class="rcard__hours">' + CE.esc(info.hours && info.hours.length ? info.hours.join(" · ") : "Hours not listed yet") + "</span>" +
           "</a></li>";
       }).join("") + "</ul>";
@@ -464,6 +471,7 @@
           '<p class="rest__name">' + CE.esc(rest.name) + "</p>" +
           '<ul class="tags">' +
             cuisines.map(function (n) { return '<li class="tag">' + CE.esc(n) + "</li>"; }).join("") +
+            (CE.price(rest) ? '<li class="tag tag--price">' + CE.price(rest).mark + " \u00b7 " + CE.esc(CE.price(rest).text) + "</li>" : "") +
             '<li class="tag tag--place">' + CE.esc(CE.locationName(rest)) + "</li>" +
           "</ul>" +
         "</div>" +

@@ -106,6 +106,12 @@
   // Area labels already say (On Campus) / (Off Campus).
   CE.locationName = function (r) { return CE.area(r).name; };
 
+  // A restaurant's price level as map apps show it ("$$") plus what it means.
+  var PRICES = ["", "Under $12 a person", "$12–20 a person", "Over $20 a person"];
+  CE.price = function (r) {
+    return r.price ? { mark: new Array(r.price + 1).join("$"), text: PRICES[r.price] } : null;
+  };
+
   // ----------------------------------------------------------------- trees
   function leaves(filter) {
     return D.restaurants.filter(filter)

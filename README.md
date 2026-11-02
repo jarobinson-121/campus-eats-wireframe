@@ -35,7 +35,7 @@ In the repo, go to Settings → Pages → Source: *Deploy from a branch* → `ma
 
 - `#/`: home, with both ways in
 - `#/food/...` and `#/place/...`: browse, ending on a restaurant page
-- Dev options → **Navigation** switches browse pages between two versions: **Breadcrumbs** (trail, no tabs or tokens) and **Chips** (Food Type / Location tabs and filter tokens, no trail). The choice is saved in the browser.
+- Dev options → **Navigation** switches browse pages between two versions: **Breadcrumbs** (trail, no tabs) and **Scrolling row** (tabs and a row of options, no trail). The choice is saved in the browser.
 - `#/map`: site map of both views
 - `#/check`: coverage check (every restaurant reachable? empty categories? tasks valid?)
 - `#/log`: click log, with Download JSON / CSV and Copy

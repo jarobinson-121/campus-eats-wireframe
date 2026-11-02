@@ -438,68 +438,7 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 .tab:hover { color: var(--ink); text-decoration: none; }
 .tab.is-current { background: var(--main); color: var(--main-ink); }
 
-/* Browse steps: choices made so far as filter tokens... */
-.pickbar { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.pick {
-  position: relative;
-  display: inline-flex;
-  align-items: stretch;
-  background: var(--main);
-  color: var(--main-ink);
-  border-radius: 999px;
-}
-.pick__menu-wrap > summary { list-style: none; }
-.pick__menu-wrap > summary::-webkit-details-marker { display: none; }
-.pick__btn {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 8px 6px 8px 16px;
-  cursor: pointer;
-  border-radius: 999px 0 0 999px;
-}
-.pick__label { font-size: 12px; font-weight: 500; opacity: .8; }
-.pick__label::after { content: ":"; }
-.pick__value { font-weight: 700; }
-.pick__caret { font-size: 12px; opacity: .8; }
-.pick__btn:hover .pick__value { text-decoration: underline; }
-.pick__x {
-  display: grid;
-  place-items: center;
-  padding: 0 14px 0 8px;
-  color: var(--main-ink);
-  font-size: 18px;
-  opacity: .8;
-  border-radius: 0 999px 999px 0;
-}
-.pick__x:hover { opacity: 1; text-decoration: none; }
-.pick__menu {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 240px;
-  margin: 0;
-  padding: 6px;
-  list-style: none;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lift);
-}
-.pick__opt {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: var(--ink);
-}
-.pick__opt:hover { background: var(--main-soft); text-decoration: none; }
-.pick__opt.is-current { font-weight: 700; color: var(--main); }
-.pick__count { color: var(--muted); font-size: 13px; }
-
-/* ...then the next choice as tiles. */
+/* Browse steps: the next choice as tiles. */
 .picks { margin: 0 0 24px; }
 .picks__q {
   margin: 0 0 12px;
@@ -546,6 +485,32 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 
 .chips { list-style: none; margin: 0 0 24px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .chip.is-current { background: var(--main); border-color: var(--main); color: var(--main-ink); }
+
+/* Browse steps, scrolling row version: every option in view, the chosen one
+   marked. Wraps on wide screens; scrolls sideways on phones. */
+.catrow {
+  position: relative;
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.catrow .chip { white-space: nowrap; }
+.segswitch {
+  list-style: none;
+  display: flex;
+  width: fit-content;
+  gap: 2px;
+  margin: 0 0 12px;
+  padding: 3px;
+  background: var(--main-soft);
+  border-radius: 999px;
+}
+.seg { display: block; padding: 5px 14px; border-radius: 999px; color: var(--ink); font-size: 14px; font-weight: 500; }
+.seg:hover { text-decoration: none; color: var(--main); }
+.seg.is-current { background: var(--surface); color: var(--main); font-weight: 700; box-shadow: var(--shadow); }
 
 .restback { margin: 0 0 16px; }
 .campusfilter { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0 0 20px; }
@@ -894,6 +859,8 @@ h2 { font-size: 22px; font-weight: 800; margin: 32px 0 12px; }
 @media (max-width: 600px) {
   .frame { padding: 0 16px 96px; }
   .topbar__home { font-size: 20px; }
+  .catrow { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: -16px; padding-right: 16px; }
+  .catrow::-webkit-scrollbar { display: none; }
   .topbar__search { order: 3; flex: 1 0 100%; max-width: none; margin-left: 0; }
   .navsearch__input { font-size: 16px; } /* prevent iOS zoom */
   .topbar__util a, .devmenu > summary { padding: 6px 8px; }

@@ -24,27 +24,32 @@
     if (!devmenu.open) return;
     if (!devmenu.contains(e.target) || e.target.closest(".devmenu__panel a")) devmenu.open = false;
   });
-  // Dev options: two navigation versions of the browse pages to compare.
-  // "crumbs": the breadcrumb trail. "chips": the Food Type / Location tabs
-  // and filter tokens, with no trail. Both keep the Filter: line.
+  // Dev options: navigation versions of the browse pages to compare.
+  // "crumbs": the breadcrumb trail. "row": the Food Type / Location tabs with
+  // no trail, and the choices as a row of options. Both keep the Filter: line.
   var NAV_KEY = "ce-nav-style";
+  var NAV_STYLES = [
+    { key: "crumbs", label: "Breadcrumbs" },
+    { key: "row", label: "Scrolling row" }
+  ];
   var navStyle = CE.store(NAV_KEY, "crumbs");
+  if (navStyle !== "crumbs") navStyle = "row";   // or saved by an earlier version
   (function () {
     var sw = document.createElement("button");
     sw.type = "button";
     sw.className = "devmenu__switch";
-    sw.setAttribute("role", "switch");
-    sw.setAttribute("aria-label", "Use tabs and filter chips instead of breadcrumbs");
     sw.setAttribute("data-nolog", "");
-    sw.innerHTML = 'Navigation<span class="devmenu__state" aria-hidden="true"></span>';
+    sw.innerHTML = 'Navigation<span class="devmenu__state"></span>';
+    function at() {
+      return NAV_STYLES.map(function (n) { return n.key; }).indexOf(navStyle);
+    }
     function show() {
-      var chips = navStyle === "chips";
-      sw.setAttribute("aria-checked", String(chips));
-      sw.querySelector(".devmenu__state").textContent = chips ? "Chips" : "Breadcrumbs";
+      sw.querySelector(".devmenu__state").textContent = NAV_STYLES[at()].label;
+      sw.setAttribute("aria-label", "Navigation style: " + NAV_STYLES[at()].label + ". Click to change.");
     }
     show();
     sw.addEventListener("click", function () {
-      navStyle = navStyle === "chips" ? "crumbs" : "chips";
+      navStyle = NAV_STYLES[(at() + 1) % NAV_STYLES.length].key;
       CE.save(NAV_KEY, navStyle);
       show();
       CE.render();
@@ -52,20 +57,7 @@
     devmenu.querySelector(".devmenu__panel").appendChild(sw);
   })();
 
-  // One filter-token menu open at a time; a click elsewhere or Escape
-  // closes it.
-  document.addEventListener("click", function (e) {
-    Array.prototype.forEach.call(document.querySelectorAll(".pick__menu-wrap[open]"), function (d) {
-      if (!d.contains(e.target)) d.open = false;
-    });
-  });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") {
-      Array.prototype.forEach.call(document.querySelectorAll(".pick__menu-wrap[open]"), function (d) {
-        d.open = false;
-        d.querySelector("summary").focus();
-      });
-    }
     if (e.key === "Escape" && devmenu.open) {
       devmenu.open = false;
       devmenu.querySelector("summary").focus();
@@ -369,35 +361,22 @@
     }).join("") + "</nav>";
   }
 
-  // Choices already made, as filter tokens ("Food type: Asian ▾ ×"). A
-  // token opens a menu of its siblings to switch to; × removes that choice
-  // (and the ones after it).
-  function pickBar(trail) {
-    var tokens = trail.slice(1).map(function (n, i) {
+  // Choices already made, with their siblings in view: a one-line row of
+  // options (a two-way switch when there are only two, like On / Off Campus).
+  // The chosen one is marked; one tap switches.
+  function catRows(trail) {
+    return trail.slice(1).map(function (n, i) {
       var parentTrail = trail.slice(0, i + 1);
       var parent = parentTrail[parentTrail.length - 1];
-      var label = parent.childLabel || parent.name;
-      var menu = parent.children.map(function (c) {
-        var on = c === n;
-        return '<li><a class="pick__opt' + (on ? " is-current" : "") + '" href="' +
-          CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' + (on ? ' aria-current="true"' : "") +
-          ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' +
-          '<span>' + CE.esc(c.name) + '</span><span class="pick__count">' + CE.countLeaves(c) + "</span></a></li>";
-      }).join("");
-      return '<li class="pick">' +
-        '<details class="pick__menu-wrap">' +
-          '<summary class="pick__btn" data-kind="filter" data-label="' + CE.esc(label + ": " + n.name) + ' (change)">' +
-            '<span class="pick__label">' + CE.esc(label) + "</span>" +
-            '<span class="pick__value">' + CE.esc(n.name) + "</span>" +
-            '<span class="pick__caret" aria-hidden="true">\u25be</span>' +
-          "</summary>" +
-          '<ul class="pick__menu">' + menu + "</ul>" +
-        "</details>" +
-        '<a class="pick__x" href="' + CE.hrefFor(parentTrail, parentTrail.length - 1) + '" aria-label="Remove ' + CE.esc(n.name) + '"' +
-          ' data-kind="filter" data-label="Remove ' + CE.esc(n.name) + '">\u00d7</a>' +
-      "</li>";
+      var two = parent.children.length === 2;
+      return '<ul class="' + (two ? "segswitch" : "catrow") + '" aria-label="' + CE.esc(parent.childLabel || parent.name) + '">' +
+        parent.children.map(function (c) {
+          var on = c === n;
+          return '<li><a class="' + (two ? "seg" : "chip") + (on ? " is-current" : "") + '" href="' +
+            CE.hrefFor(parentTrail.concat([c]), parentTrail.length) + '"' + (on ? ' aria-current="true"' : "") +
+            ' data-kind="sibling" data-label="' + CE.esc(c.name) + ' (switch)">' + CE.esc(c.name) + "</a></li>";
+        }).join("") + "</ul>";
     }).join("");
-    return tokens ? '<ul class="pickbar" aria-label="Your choices">' + tokens + "</ul>" : "";
   }
 
   // The next choice, as a grid of tiles: name, landmark line, count.
@@ -503,7 +482,7 @@
       '<span aria-current="page">' + CE.esc(r.node.name) + "</span></nav>";
   }
 
-  // The chips version has no trail, so a restaurant page gets one way back:
+  // Without a trail, a restaurant page gets one way back:
   // to the search results or the list it was opened from.
   function backChip(r) {
     var parent = r.trail.slice(0, -1);
@@ -514,7 +493,7 @@
 
   function viewRestaurant(r) {
     onePage(
-      (navStyle === "chips" ? viewTabs(viaSearch ? null : r.view) + backChip(r) :
+      (navStyle !== "crumbs" ? viewTabs(viaSearch ? null : r.view) + backChip(r) :
         viaSearch ? searchCrumbs(r) : crumbs(r.trail)) +
       '<div class="restpage">' + detail(r) + "</div>", r.node.name);
   }
@@ -588,14 +567,20 @@
     if (r.node.block) return viewRestaurant(r);
     var trail = r.trail;
     var flat = r.view.flatList && trail.length > 1;
+    // On a flat list the campus choice lives in the Filter: line.
+    var chosen = flat ? trail.slice(0, 2) : trail;
     onePage(
-      (navStyle === "chips" ? viewTabs(r.view) : "") +
-      (trail.length === 1 ? '<p class="lede">' + CE.esc(r.view.blurb) + "</p>" : "") +
-      // On a flat list the campus choice lives in the filter, not a token.
-      (navStyle === "chips" ? pickBar(flat ? trail.slice(0, 2) : trail) : crumbs(trail)) +
+      (navStyle !== "crumbs" ? viewTabs(r.view) : "") +
+      (navStyle === "row" ? catRows(chosen) : crumbs(trail)) +
       (flat ? campusFilter(r) : "") +
       (showsCards(r) ? restaurantCards(r) : pickTiles(trail)),
       stepHeading(trail));
+    // Phones: bring the chosen option into view in its scrolling row.
+    var cur = app.querySelector(".catrow .is-current");
+    if (cur) {
+      var row = cur.closest(".catrow");
+      row.scrollLeft = cur.offsetLeft - (row.clientWidth - cur.offsetWidth) / 2;
+    }
   }
 
   // A researched list (hours, menu), or a plain "not listed" when the

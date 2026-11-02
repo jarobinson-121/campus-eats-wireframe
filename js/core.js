@@ -135,8 +135,11 @@
     name: "Browse by Food Type",
     short: "Food type",
     blurb: "Pick what you're hungry for.",
-    // childLabel names the chip row of a node's children on browse steps.
+    // childLabel names a node's children on browse steps.
     childLabel: "Food type",
+    // A food type lists all its restaurants right away; its children (on /
+    // off campus) are an optional filter, not a required step.
+    flatList: true,
     children: D.cuisines.map(function (c) {
       return {
         key: c.key,
